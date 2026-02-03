@@ -1,4 +1,6 @@
 import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
 
 struct SessionSummaryView: View {
     let sessionDuration: TimeInterval
@@ -9,7 +11,12 @@ struct SessionSummaryView: View {
     let startTime: Date
     let endTime: Date
     let mergedSessionCount: Int?
+    let showReflection: Bool
+    let onSetMood: (SessionMood?) -> Void
     let onClose: () -> Void
+
+    @State private var isExporting = false
+    @State private var exportError: String?
     
     var body: some View {
         VStack(spacing: 12) {
@@ -66,9 +73,16 @@ struct SessionSummaryView: View {
                 }
             }
             
+            // Gentle summary (emotional value, no judgement)
+            Text(supportiveLine)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.top, 2)
+            
             Divider()
                 .padding(.vertical, 4)
-            
+
             // Segment List
             if !segments.isEmpty {
                 ScrollView {
@@ -93,14 +107,115 @@ struct SessionSummaryView: View {
                 }
                 .frame(maxHeight: 120)
             }
+
+            Button {
+                exportCard()
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "square.and.arrow.up")
+                    Text("导出小卡")
+                }
+                .font(.caption)
+                .foregroundColor(.primary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Material.thin)
+                .clipShape(Capsule())
+                .overlay(
+                    Capsule()
+                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                )
+            }
+            .buttonStyle(.plain)
+            .disabled(isExporting)
+            .accessibilityLabel(Text("导出专注小卡"))
+            
+            if showReflection {
+                VStack(spacing: 10) {
+                    Text("这次感觉如何？（可选）")
+                        .font(.caption)
+                        .foregroundColor(.secondary.opacity(0.8))
+                    
+                    HStack(spacing: 10) {
+                        ForEach(SessionMood.allCases) { mood in
+                            Button {
+                                onSetMood(mood)
+                            } label: {
+                                VStack(spacing: 6) {
+                                    Image(systemName: mood.symbolName)
+                                        .font(.system(size: 14, weight: .semibold))
+                                    Text(mood.title)
+                                        .font(.caption2)
+                                }
+                                .frame(width: 58, height: 44)
+                                .background(Material.thin)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(Text("心情：\(mood.title)"))
+                        }
+                    }
+                    
+                    Button {
+                        onSetMood(nil)
+                    } label: {
+                        Text("跳过")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.secondary.opacity(0.10))
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.top, 6)
+            } else {
+                Button {
+                    onClose()
+                } label: {
+                    Text("关闭")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.secondary.opacity(0.10))
+                        .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 6)
+            }
         }
         .padding(20)
-        .frame(width: 260)
+        .frame(width: 300)
         .background(Material.ultraThin)
         .cornerRadius(20)
         .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
-        .onTapGesture {
-            onClose()
+        .alert("导出失败", isPresented: Binding(
+            get: { exportError != nil },
+            set: { _ in exportError = nil }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(exportError ?? "")
+        }
+    }
+    
+    private var supportiveLine: String {
+        let total = greenDuration + redDuration
+        guard total > 0 else { return "今天的每一小段努力都算数。" }
+        
+        let ratio = greenDuration / total
+        if ratio >= 0.7 {
+            return "你保持了清晰的节奏。"
+        } else if ratio >= 0.4 {
+            return "有专注也有恢复，这很真实。"
+        } else {
+            return "你也在照顾自己——休息是计划的一部分。"
         }
     }
     
@@ -117,5 +232,133 @@ struct SessionSummaryView: View {
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: date)
     }
+
+    private func exportCard() {
+        guard !isExporting else { return }
+        isExporting = true
+        defer { isExporting = false }
+
+        let content = SessionExportCardView(
+            sessionDuration: sessionDuration,
+            greenDuration: greenDuration,
+            redDuration: redDuration,
+            avgGreenStreak: avgGreenStreak,
+            startTime: startTime,
+            endTime: endTime
+        )
+
+        let renderer = ImageRenderer(content: content)
+        renderer.scale = 2
+
+        guard let nsImage = renderer.nsImage else {
+            exportError = "无法生成图片"
+            return
+        }
+
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [UTType.png]
+        panel.nameFieldStringValue = "FocusOrb-Session-\(exportDateString()).png"
+
+        let response = panel.runModal()
+        guard response == .OK, let url = panel.url else { return }
+
+        guard let tiff = nsImage.tiffRepresentation,
+              let rep = NSBitmapImageRep(data: tiff),
+              let data = rep.representation(using: .png, properties: [:]) else {
+            exportError = "导出失败"
+            return
+        }
+
+        do {
+            try data.write(to: url)
+        } catch {
+            exportError = "写入失败：\(error.localizedDescription)"
+        }
+    }
+
+    private func exportDateString() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd-HHmm"
+        return formatter.string(from: endTime)
+    }
 }
 
+private struct SessionExportCardView: View {
+    let sessionDuration: TimeInterval
+    let greenDuration: TimeInterval
+    let redDuration: TimeInterval
+    let avgGreenStreak: TimeInterval
+    let startTime: Date
+    let endTime: Date
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.mint.opacity(0.25), Color.teal.opacity(0.15)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color.white.opacity(0.25), lineWidth: 1)
+                )
+
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("FocusOrb · 专注小卡")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    Spacer()
+                    Image(systemName: "sparkles")
+                        .foregroundColor(.teal)
+                }
+
+                Text(formatDuration(sessionDuration))
+                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+
+                Text("\(formatTime(startTime)) - \(formatTime(endTime))")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                HStack(spacing: 16) {
+                    exportMetric(title: "专注", value: formatDuration(greenDuration), color: .mint)
+                    exportMetric(title: "休息", value: formatDuration(redDuration), color: .red)
+                    exportMetric(title: "平均专注", value: formatDuration(avgGreenStreak), color: .teal)
+                }
+            }
+            .padding(20)
+        }
+        .frame(width: 420, height: 220)
+    }
+
+    private func exportMetric(title: String, value: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            Text(value)
+                .font(.callout.monospacedDigit())
+                .foregroundColor(color)
+        }
+    }
+
+    private func formatDuration(_ interval: TimeInterval) -> String {
+        let hours = Int(interval) / 3600
+        let minutes = Int(interval) / 60 % 60
+        if hours > 0 {
+            return String(format: "%dh %02dm", hours, minutes)
+        } else {
+            return String(format: "%02dm", minutes)
+        }
+    }
+
+    private func formatTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
+    }
+}

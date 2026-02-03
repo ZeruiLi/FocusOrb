@@ -165,8 +165,10 @@ class OrbStateMachine: ObservableObject {
     }
 
     private func restoreState() {
-        guard let last = eventStore.lastEvent, last.type != .sessionEnd else {
+        let lastNonReflection = eventStore.events.last { $0.type != .sessionReflection }
+        guard let last = lastNonReflection, last.type != .sessionEnd else {
             currentState = .idle
+            currentSessionId = nil
             return
         }
 
@@ -200,4 +202,3 @@ class OrbStateMachine: ObservableObject {
         }
     }
 }
-
