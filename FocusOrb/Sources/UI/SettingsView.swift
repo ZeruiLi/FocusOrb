@@ -13,6 +13,8 @@ struct SettingsView: View {
                     Text("15 minutes").tag(15)
                     Text("30 minutes").tag(30)
                 }
+                
+                Toggle("Show reflection prompt after session", isOn: $settings.enableSessionReflection)
             }
             
             Section(header: Text("App Behavior")) {
@@ -21,6 +23,6 @@ struct SettingsView: View {
             }
         }
         .padding(20)
-        .frame(width: 450, height: 200)
+        .frame(width: 520, height: 230)
     }
 }

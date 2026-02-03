@@ -8,6 +8,7 @@ enum EventType: String, Codable {
     case confirmRedStart
     case switchToGreen
     case sessionEnd
+    case sessionReflection
 }
 
 struct OrbEvent: Identifiable, Codable, FetchableRecord, PersistableRecord {

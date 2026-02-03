@@ -156,23 +156,7 @@ class StatusBarManager {
     }
     
     @objc private func settingsAction() {
-        print("⚙️ Settings action triggered")
-        // 方法1: 尝试打开Settings窗口
-        NSApp.sendAction(Selector("showPreferencesWindow:"), to: nil, from: nil)
-        
-        // 方法2: 如果方法1失败，尝试激活Settings
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            // 从所有窗口中查找Settings窗口
-            for window in NSApp.windows {
-                if window.title.contains("Settings") || window.title.contains("设置") {
-                    window.makeKeyAndOrderFront(nil)
-                    NSApp.activate(ignoringOtherApps: true)
-                    print("✅ Settings window found and activated")
-                    return
-                }
-            }
-            print("⚠️ Settings window not found")
-        }
+        windowManager?.showSettings()
     }
     
     @objc private func quitAction() {

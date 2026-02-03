@@ -8,6 +8,7 @@ class AppSettings: ObservableObject {
     @AppStorage("launchAtLogin") var launchAtLogin: Bool = false
     @AppStorage("showOrbOnLaunch") var showOrbOnLaunch: Bool = true
     @AppStorage("hasSeenOnboarding") var hasSeenOnboarding: Bool = false
+    @AppStorage("enableSessionReflection") var enableSessionReflection: Bool = true
     
     private init() {}
 }

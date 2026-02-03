@@ -97,6 +97,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     var summaryPanel: NSPanel?
     var startPanel: NSWindow?
     var dashboardWindow: NSWindow?  // Managed dashboard window
+    var settingsWindow: NSWindow?
     
     private let stateMachine: OrbStateMachine
     private var cancellables = Set<AnyCancellable>()
@@ -382,7 +383,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
                 backing: .buffered,
                 defer: false
             )
-            window.title = "FocusOrb Dashboard"
+            window.title = "FocusOrb · 复盘"
             window.center()
             window.contentView = NSHostingView(rootView: DashboardView(eventStore: EventStore.shared))
             window.isReleasedWhenClosed = false
@@ -392,12 +393,37 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         
         dashboardWindow?.makeKeyAndOrderFront(nil)
     }
+
+    func showSettings() {
+        NSApp.activate(ignoringOtherApps: true)
+
+        if settingsWindow == nil {
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 520, height: 260),
+                styleMask: [.titled, .closable],
+                backing: .buffered,
+                defer: false
+            )
+            window.title = "FocusOrb · 设置"
+            window.center()
+            window.contentView = NSHostingView(rootView: SettingsView())
+            window.isReleasedWhenClosed = false
+            window.delegate = self
+            settingsWindow = window
+        }
+
+        settingsWindow?.makeKeyAndOrderFront(nil)
+    }
     
     // MARK: - NSWindowDelegate
     
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         if sender == dashboardWindow {
             // Hide instead of close
+            sender.orderOut(nil)
+            return false
+        }
+        if sender == settingsWindow {
             sender.orderOut(nil)
             return false
         }
@@ -417,6 +443,9 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         let sessionEvents = EventStore.shared.events(for: sessionId)
         let stats: SessionStats = StatsCalculator.sessionStats(events: sessionEvents)
         
+        let parentSessionId = sessionEvents.first(where: { $0.type == .sessionStart })?.parentSessionId
+        let reflectionSessionId = parentSessionId ?? sessionId
+        
         // Calculate session time range
         let startTime = sessionEvents.first(where: { $0.type == .sessionStart })?.timestamp ?? Date()
         let endTime = lastEndEvent.timestamp
@@ -428,7 +457,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         
         if summaryPanel == nil {
             summaryPanel = NSPanel(
-                contentRect: NSRect(x: 0, y: 0, width: 280, height: 320),
+                contentRect: NSRect(x: 0, y: 0, width: 340, height: 420),
                 styleMask: [.borderless, .nonactivatingPanel],
                 backing: .buffered,
                 defer: false
@@ -448,6 +477,20 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
             startTime: startTime,
             endTime: endTime,
             mergedSessionCount: mergedCount,
+            showReflection: AppSettings.shared.enableSessionReflection,
+            onSetMood: { [weak self] mood in
+                if let mood {
+                    EventStore.shared.append(
+                        OrbEvent(
+                            type: .sessionReflection,
+                            sessionId: reflectionSessionId,
+                            meta: ["mood": mood.rawValue, "source": "summary"]
+                        )
+                    )
+                }
+                self?.summaryPanel?.orderOut(nil)
+                self?.showStart()
+            },
             onClose: { [weak self] in
                 self?.summaryPanel?.orderOut(nil)
                 self?.showStart()
@@ -460,12 +503,11 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         if let orbFrame = panel.frame as CGRect? {
             let centerX = orbFrame.midX
             let centerY = orbFrame.midY
-            let summaryWidth: CGFloat = 220
-            let summaryHeight: CGFloat = 140
+            let summarySize = summaryPanel?.frame.size ?? CGSize(width: 340, height: 420)
             
             let summaryOrigin = CGPoint(
-                x: centerX - summaryWidth/2,
-                y: centerY - summaryHeight/2
+                x: centerX - summarySize.width / 2,
+                y: centerY - summarySize.height / 2
             )
             summaryPanel?.setFrameOrigin(summaryOrigin)
         }
