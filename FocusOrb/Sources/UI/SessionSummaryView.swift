@@ -290,57 +290,201 @@ private struct SessionExportCardView: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [Color.mint.opacity(0.25), Color.teal.opacity(0.15)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(Color.white.opacity(0.25), lineWidth: 1)
-                )
+            background
 
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Text("FocusOrb · 专注小卡")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    Spacer()
-                    Image(systemName: "sparkles")
-                        .foregroundColor(.teal)
-                }
+            HStack(alignment: .center, spacing: 18) {
+                leftContent
 
-                Text(formatDuration(sessionDuration))
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-
-                Text("\(formatTime(startTime)) - \(formatTime(endTime))")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-
-                HStack(spacing: 16) {
-                    exportMetric(title: "专注", value: formatDuration(greenDuration), color: .mint)
-                    exportMetric(title: "休息", value: formatDuration(redDuration), color: .red)
-                    exportMetric(title: "平均专注", value: formatDuration(avgGreenStreak), color: .teal)
-                }
+                illustration
+                    .frame(width: 180, height: 170)
             }
-            .padding(20)
+            .padding(22)
         }
-        .frame(width: 420, height: 220)
+        .frame(width: 520, height: 260)
     }
 
-    private func exportMetric(title: String, value: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-            Text(value)
-                .font(.callout.monospacedDigit())
-                .foregroundColor(color)
+    private var background: some View {
+        RoundedRectangle(cornerRadius: 26, style: .continuous)
+            .fill(
+                LinearGradient(
+                    colors: [
+                        Color(red: 1.0, green: 0.98, blue: 0.95),
+                        AppTheme.Colors.focusMintSoft.opacity(0.14),
+                        AppTheme.Colors.warmOrange.opacity(0.10),
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .overlay {
+                ZStack {
+                    Circle()
+                        .fill(AppTheme.Colors.focusMintSoft.opacity(0.16))
+                        .frame(width: 220, height: 220)
+                        .blur(radius: 26)
+                        .offset(x: -160, y: -120)
+
+                    Circle()
+                        .fill(AppTheme.Colors.warmOrange.opacity(0.20))
+                        .frame(width: 260, height: 260)
+                        .blur(radius: 32)
+                        .offset(x: 170, y: 120)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+            }
+            .overlay(
+                RoundedRectangle(cornerRadius: 26, style: .continuous)
+                    .stroke(Color.white.opacity(0.28), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.08), radius: 18, x: 0, y: 10)
+    }
+
+    private var leftContent: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                stickerMini(imageName: "focus")
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("FocusOrb · 专注小卡")
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundColor(AppTheme.Colors.textPrimary.opacity(0.92))
+                    Text("\(formatTime(startTime)) - \(formatTime(endTime))")
+                        .font(.system(size: 11, weight: .medium, design: .rounded).monospacedDigit())
+                        .foregroundColor(AppTheme.Colors.textSecondary.opacity(0.75))
+                }
+
+                Spacer()
+
+                Image(systemName: "sparkles")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(AppTheme.Colors.warmOrange.opacity(0.9))
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(formatDuration(sessionDuration))
+                    .font(.system(size: 44, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [
+                                AppTheme.Colors.focusMintSoft,
+                                AppTheme.Colors.focusMintSoft.opacity(0.75),
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .shadow(color: AppTheme.Colors.focusMintSoft.opacity(0.18), radius: 10, x: 0, y: 6)
+
+                Text("本次专注时长")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+            }
+
+            HStack(spacing: 10) {
+                exportMetricPill(
+                    title: "专注",
+                    value: formatDuration(greenDuration),
+                    tint: AppTheme.Colors.focusMintSoft,
+                    systemImage: "leaf.fill"
+                )
+
+                exportMetricPill(
+                    title: "休息",
+                    value: formatDuration(redDuration),
+                    tint: AppTheme.Colors.warmOrange,
+                    systemImage: "cup.and.saucer.fill"
+                )
+
+                exportMetricPill(
+                    title: "平均专注",
+                    value: formatDuration(avgGreenStreak),
+                    tint: AppTheme.Colors.focusMintSoft.opacity(0.9),
+                    systemImage: "clock.fill"
+                )
+            }
         }
+    }
+
+    private var illustration: some View {
+        ZStack {
+            Circle()
+                .fill(AppTheme.Colors.warmOrange.opacity(0.18))
+                .frame(width: 170, height: 170)
+                .blur(radius: 18)
+                .offset(x: 14, y: 10)
+
+            Circle()
+                .fill(AppTheme.Colors.focusMintSoft.opacity(0.16))
+                .frame(width: 160, height: 160)
+                .blur(radius: 18)
+                .offset(x: -10, y: -12)
+
+            if let image = BundledImage.swiftUIImage(named: "focus", subdirectory: "Orb") {
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 175, height: 155)
+                    .shadow(color: Color.black.opacity(0.14), radius: 18, x: 0, y: 12)
+            }
+
+            if let tree = BundledImage.swiftUIImage(named: "tree", subdirectory: "Orb") {
+                tree
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 38, height: 38)
+                    .shadow(color: Color.black.opacity(0.10), radius: 8, x: 0, y: 6)
+                    .offset(x: 42, y: 52)
+            }
+        }
+    }
+
+    private func exportMetricPill(title: String, value: String, tint: Color, systemImage: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(tint.opacity(0.95))
+                Text(title)
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .foregroundColor(AppTheme.Colors.textSecondary.opacity(0.8))
+            }
+
+            Text(value)
+                .font(.system(size: 14, weight: .bold, design: .rounded).monospacedDigit())
+                .foregroundColor(AppTheme.Colors.textPrimary.opacity(0.9))
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.white.opacity(0.42))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.white.opacity(0.28), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 6)
+    }
+
+    private func stickerMini(imageName: String) -> some View {
+        ZStack {
+            Circle()
+                .fill(AppTheme.Colors.warmOrange.opacity(0.18))
+                .frame(width: 34, height: 34)
+                .blur(radius: 8)
+            if let image = BundledImage.swiftUIImage(named: imageName, subdirectory: "Orb") {
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 22, height: 22)
+                    .shadow(color: AppTheme.Colors.warmOrange.opacity(0.22), radius: 6, x: 0, y: 4)
+            } else {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(AppTheme.Colors.warmOrange)
+            }
+        }
+        .frame(width: 34, height: 34)
     }
 
     private func formatDuration(_ interval: TimeInterval) -> String {
