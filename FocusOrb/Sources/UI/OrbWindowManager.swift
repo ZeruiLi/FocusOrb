@@ -129,7 +129,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         // Updated Window Logic: Borderless (Fix Transparency) + Large Size (Fix Clipping)
         // Use DraggablePanel instead of standard NSPanel
         let dragPanel = DraggablePanel(
-            contentRect: NSRect(x: 100, y: 100, width: 120, height: 120),
+            contentRect: NSRect(x: 100, y: 100, width: 160, height: 140),
             styleMask: [.borderless, .nonactivatingPanel], 
             backing: .buffered,
             defer: false
@@ -399,7 +399,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
 
         if settingsWindow == nil {
             let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 520, height: 260),
+                contentRect: NSRect(x: 0, y: 0, width: 520, height: 360),
                 styleMask: [.titled, .closable],
                 backing: .buffered,
                 defer: false

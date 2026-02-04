@@ -20,10 +20,13 @@ struct SessionSummaryView: View {
     
     var body: some View {
         VStack(spacing: 12) {
-            // Header
-            Text("Session Complete")
-                .font(.caption)
-                .foregroundColor(.secondary)
+            StickerHeader(
+                imageName: "focus",
+                title: "Session Complete",
+                subtitle: nil,
+                style: .centered,
+                iconSize: 36
+            )
             
             // Merge hint
             if let count = mergedSessionCount, count > 1 {
@@ -36,7 +39,7 @@ struct SessionSummaryView: View {
             Text(formatDuration(sessionDuration))
                 .font(.system(.title, design: .rounded).monospacedDigit())
                 .fontWeight(.bold)
-                .foregroundColor(Color(red: 0.0, green: 0.95, blue: 0.6))
+                .foregroundColor(AppTheme.Colors.focusMint)
             
             // Time Range
             Text("\(formatTime(startTime)) - \(formatTime(endTime))")
@@ -48,14 +51,14 @@ struct SessionSummaryView: View {
                 Label {
                     Text(formatDuration(greenDuration))
                 } icon: {
-                    Circle().fill(Color.green).frame(width: 6, height: 6)
+                    Circle().fill(AppTheme.Colors.focusMint).frame(width: 6, height: 6)
                 }
                 .font(.footnote)
                 
                 Label {
                     Text(formatDuration(redDuration))
                 } icon: {
-                    Circle().fill(Color.red).frame(width: 6, height: 6)
+                    Circle().fill(AppTheme.Colors.warmOrange).frame(width: 6, height: 6)
                 }
                 .font(.footnote)
             }
@@ -85,48 +88,34 @@ struct SessionSummaryView: View {
 
             // Segment List
             if !segments.isEmpty {
-                ScrollView {
-                    VStack(spacing: 6) {
-                        ForEach(segments) { segment in
-                            HStack {
-                                Circle()
-                                    .fill(segment.type == .green ? Color.green : Color.red)
-                                    .frame(width: 6, height: 6)
-                                
-                                Text("\(formatTime(segment.startTime)) - \(formatTime(segment.endTime ?? Date()))")
-                                    .font(.caption2.monospacedDigit())
-                                
-                                Spacer()
-                                
-                                Text(formatDuration(segment.duration))
-                                    .font(.caption2.monospacedDigit())
-                                    .foregroundColor(.secondary)
+                GlassCard(padding: 12) {
+                    ScrollView {
+                        VStack(spacing: 6) {
+                            ForEach(segments) { segment in
+                                HStack {
+                                    Circle()
+                                        .fill(segment.type == .green ? AppTheme.Colors.focusMint : AppTheme.Colors.warmOrange)
+                                        .frame(width: 6, height: 6)
+
+                                    Text("\(formatTime(segment.startTime)) - \(formatTime(segment.endTime ?? Date()))")
+                                        .font(.caption2.monospacedDigit())
+
+                                    Spacer()
+
+                                    Text(formatDuration(segment.duration))
+                                        .font(.caption2.monospacedDigit())
+                                        .foregroundColor(.secondary)
+                                }
                             }
                         }
                     }
+                    .frame(maxHeight: 120)
                 }
-                .frame(maxHeight: 120)
             }
 
-            Button {
+            PrimaryCapsuleButton(title: "导出小卡", systemImage: "square.and.arrow.up", style: .warm) {
                 exportCard()
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "square.and.arrow.up")
-                    Text("导出小卡")
-                }
-                .font(.caption)
-                .foregroundColor(.primary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Material.thin)
-                .clipShape(Capsule())
-                .overlay(
-                    Capsule()
-                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                )
             }
-            .buttonStyle(.plain)
             .disabled(isExporting)
             .accessibilityLabel(Text("导出专注小卡"))
             
@@ -141,19 +130,15 @@ struct SessionSummaryView: View {
                             Button {
                                 onSetMood(mood)
                             } label: {
-                                VStack(spacing: 6) {
-                                    Image(systemName: mood.symbolName)
-                                        .font(.system(size: 14, weight: .semibold))
-                                    Text(mood.title)
-                                        .font(.caption2)
+                                GlassCard(padding: 8) {
+                                    VStack(spacing: 6) {
+                                        Image(systemName: mood.symbolName)
+                                            .font(.system(size: 14, weight: .semibold))
+                                        Text(mood.title)
+                                            .font(.caption2)
+                                    }
+                                    .frame(width: 50, height: 40)
                                 }
-                                .frame(width: 58, height: 44)
-                                .background(Material.thin)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                                )
                             }
                             .buttonStyle(.plain)
                             .accessibilityLabel(Text("心情：\(mood.title)"))
@@ -165,11 +150,15 @@ struct SessionSummaryView: View {
                     } label: {
                         Text("跳过")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(AppTheme.Colors.textSecondary)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
-                            .background(Color.secondary.opacity(0.10))
+                            .background(Material.thin)
                             .clipShape(Capsule())
+                            .overlay(
+                                Capsule()
+                                    .stroke(AppTheme.Colors.surfaceStroke, lineWidth: 1)
+                            )
                     }
                     .buttonStyle(.plain)
                 }
@@ -180,11 +169,15 @@ struct SessionSummaryView: View {
                 } label: {
                     Text("关闭")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(AppTheme.Colors.textSecondary)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(Color.secondary.opacity(0.10))
+                        .background(Material.thin)
                         .clipShape(Capsule())
+                        .overlay(
+                            Capsule()
+                                .stroke(AppTheme.Colors.surfaceStroke, lineWidth: 1)
+                        )
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 6)
@@ -192,9 +185,13 @@ struct SessionSummaryView: View {
         }
         .padding(20)
         .frame(width: 300)
-        .background(Material.ultraThin)
-        .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+        .background(AppTheme.Effects.cardMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.Effects.cardRadius, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.Effects.cardRadius, style: .continuous)
+                .stroke(AppTheme.Colors.surfaceStroke, lineWidth: 1)
+        )
+        .shadow(color: AppTheme.Effects.cardShadow.color, radius: AppTheme.Effects.cardShadow.radius, x: 0, y: 5)
         .alert("导出失败", isPresented: Binding(
             get: { exportError != nil },
             set: { _ in exportError = nil }
