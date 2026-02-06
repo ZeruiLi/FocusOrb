@@ -238,34 +238,27 @@ private extension OrbView {
     }
 
     var cloudBase: some View {
-        let s = cloudUnitScale
-        let puff1Size = CGSize(width: 110 * s, height: 110 * s)
-        let puff2Size = CGSize(width: 130 * s, height: 130 * s)
-        let baseHeight: CGFloat = 100 * s
+        ZStack {
+            // Use union silhouette for a single material fill so overlaps do not form seams.
+            CloudSilhouetteShape()
+                .fill(.ultraThinMaterial)
+                .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                .opacity(colorScheme == .dark ? 0.86 : 0.98)
 
-        return ZStack(alignment: .topLeading) {
-            Circle()
-                .fill(cloudGlassColor.opacity(cloudPuffOpacity))
-                .frame(width: puff1Size.width, height: puff1Size.height)
-                .overlay(Circle().stroke(cloudGlassBorder, lineWidth: cloudStrokeWidth))
-                .offset(x: 40 * s, y: 20 * s)
-
-            Circle()
-                .fill(cloudGlassColor.opacity(cloudPuffOpacity))
-                .frame(width: puff2Size.width, height: puff2Size.height)
-                .overlay(Circle().stroke(cloudGlassBorder, lineWidth: cloudStrokeWidth))
-                .offset(x: 110 * s, y: 10 * s)
-
-            RoundedRectangle(cornerRadius: 50 * s, style: .continuous)
-                .fill(cloudGlassColor.opacity(cloudBaseOpacity))
-                .frame(width: scaledCloudSize.width, height: baseHeight)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 50 * s, style: .continuous)
-                        .stroke(cloudGlassBorder, lineWidth: cloudStrokeWidth)
+            CloudSilhouetteShape()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            cloudGlassTopColor.opacity(cloudBaseOpacity),
+                            cloudGlassBottomColor.opacity(cloudBaseOpacity)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
                 )
-                .offset(x: 0, y: scaledCloudSize.height - baseHeight)
+                .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
 
-            Rectangle()
+            CloudSilhouetteShape()
                 .fill(
                     LinearGradient(
                         colors: [
@@ -278,8 +271,27 @@ private extension OrbView {
                     )
                 )
                 .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                .mask(cloudMask)
                 .blendMode(.overlay)
+
+            // Outer contour only; no per-piece strokes.
+            CloudSilhouetteShape()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            cloudOuterContour.opacity(colorScheme == .dark ? 0.28 : 0.52),
+                            cloudOuterContour.opacity(colorScheme == .dark ? 0.10 : 0.20)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                .blur(radius: 0.8)
+                .mask(
+                    CloudSilhouetteShape()
+                        .stroke(lineWidth: 1.2)
+                        .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                )
         }
         .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
         .compositingGroup()
@@ -287,16 +299,21 @@ private extension OrbView {
         .allowsHitTesting(false)
     }
 
-    var cloudUnitScale: CGFloat {
-        scaledCloudSize.width / 280.0
-    }
-
-    var cloudGlassColor: Color {
+    var cloudGlassTopColor: Color {
         switch colorScheme {
         case .dark:
-            return Color(red: 30.0 / 255.0, green: 41.0 / 255.0, blue: 59.0 / 255.0)
+            return Color(red: 0.20, green: 0.28, blue: 0.35)
         default:
-            return Color.white
+            return Color(red: 0.98, green: 1.00, blue: 0.99)
+        }
+    }
+
+    var cloudGlassBottomColor: Color {
+        switch colorScheme {
+        case .dark:
+            return Color(red: 0.14, green: 0.20, blue: 0.26)
+        default:
+            return Color(red: 0.93, green: 0.99, blue: 0.97)
         }
     }
 
@@ -313,16 +330,8 @@ private extension OrbView {
         }
     }
 
-    var cloudGlassBorder: Color {
-        colorScheme == .dark ? Color.white.opacity(0.10) : Color.white.opacity(0.80)
-    }
-
-    var cloudStrokeWidth: CGFloat {
-        max(0.7, cloudUnitScale * 1.2)
-    }
-
-    var cloudPuffOpacity: Double {
-        colorScheme == .dark ? 0.70 : 0.60
+    var cloudOuterContour: Color {
+        colorScheme == .dark ? Color.white : Color.white
     }
 
     var cloudTintTopOpacity: Double {
