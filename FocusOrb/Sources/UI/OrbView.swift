@@ -7,6 +7,7 @@ struct OrbView: View {
     @State private var glowPulse = false
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
 
     let mintColor = Color(red: 0.0, green: 1.0, blue: 0.6)
     let coralColor = Color(red: 1.0, green: 0.5, blue: 0.5)
@@ -19,6 +20,14 @@ struct OrbView: View {
             if hasCloudAssets && visualState != .idle {
                 cloudGlow
                 cloudBase
+                cloudGlassHighlight
+
+                if shouldShowFocusFace {
+                    focusFace
+                        .frame(width: scaledCloudSize.width, height: scaledCloudSize.height, alignment: .center)
+                        .offset(y: -3)
+                        .allowsHitTesting(false)
+                }
 
                 if shouldShowIdleFill {
                     WaveFillView(progress: stateMachine.idleFillProgress)
@@ -51,7 +60,7 @@ struct OrbView: View {
                     badgeImage
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 28, height: 28)
+                        .frame(width: badgeSize, height: badgeSize)
                         .opacity(badgeOpacity)
                         .shadow(color: Color.black.opacity(0.15), radius: 2, x: 0, y: 1)
                         .frame(width: orbSize.width, height: orbSize.height, alignment: .bottomTrailing)
@@ -127,7 +136,7 @@ struct OrbView: View {
 
         if animate {
             glowPulse = false
-            withAnimation(.easeInOut(duration: 2.6).repeatForever(autoreverses: true)) {
+            withAnimation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true)) {
                 glowPulse = true
             }
         } else {
@@ -180,7 +189,7 @@ private extension OrbView {
         case .idle:
             nil
         case .focus, .focusIdleGradient:
-            nil
+            "tree"
         case .redPending:
             "cup"
         case .break:
@@ -188,10 +197,23 @@ private extension OrbView {
         }
     }
 
+    var badgeSize: CGFloat {
+        switch visualState {
+        case .focus, .focusIdleGradient:
+            20
+        case .redPending:
+            24
+        default:
+            28
+        }
+    }
+
     var badgeOpacity: Double {
         switch visualState {
+        case .focus:
+            0.95
         case .focusIdleGradient:
-            0.7
+            0.78
         case .redPending:
             0.55
         default:
@@ -238,12 +260,62 @@ private extension OrbView {
     var cloudBaseOpacity: Double {
         switch visualState {
         case .focusIdleGradient:
-            0.92
+            0.96
         case .redPending:
             0.9
         default:
             1.0
         }
+    }
+
+    var cloudGlassHighlight: some View {
+        let topHighlightOpacity: Double
+        let edgeHighlightOpacity: Double
+
+        switch visualState {
+        case .focus:
+            topHighlightOpacity = 0.14
+            edgeHighlightOpacity = 0.09
+        case .focusIdleGradient:
+            topHighlightOpacity = 0.17
+            edgeHighlightOpacity = 0.11
+        case .redPending:
+            topHighlightOpacity = 0.08
+            edgeHighlightOpacity = 0.05
+        case .break:
+            topHighlightOpacity = 0.06
+            edgeHighlightOpacity = 0.04
+        case .idle:
+            topHighlightOpacity = 0
+            edgeHighlightOpacity = 0
+        }
+
+        return ZStack {
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(topHighlightOpacity),
+                            Color.white.opacity(topHighlightOpacity * 0.38),
+                            Color.clear
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                .mask(cloudMask)
+
+            Rectangle()
+                .fill(Color.white.opacity(edgeHighlightOpacity))
+                .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                .mask(cloudMask)
+                .blur(radius: 0.8)
+                .offset(x: -1.4, y: -1.2)
+                .blendMode(.screen)
+        }
+        .frame(width: orbSize.width, height: orbSize.height)
+        .allowsHitTesting(false)
     }
 
     var cloudGlow: some View {
@@ -268,6 +340,36 @@ private extension OrbView {
         }
         .frame(width: orbSize.width, height: orbSize.height)
         .allowsHitTesting(false)
+    }
+
+    var shouldShowFocusFace: Bool {
+        visualState == .focus || visualState == .focusIdleGradient
+    }
+
+    var faceFeatureColor: Color {
+        colorScheme == .dark ? Color.white.opacity(0.56) : Color.black.opacity(0.42)
+    }
+
+    var focusFace: some View {
+        VStack(spacing: 2) {
+            HStack(spacing: 12) {
+                Circle()
+                    .fill(faceFeatureColor)
+                    .frame(width: 4, height: 4)
+
+                Circle()
+                    .fill(faceFeatureColor)
+                    .frame(width: 4, height: 4)
+            }
+
+            SmileShape()
+                .stroke(
+                    faceFeatureColor.opacity(colorScheme == .dark ? 0.95 : 0.82),
+                    style: StrokeStyle(lineWidth: 1.8, lineCap: .round, lineJoin: .round)
+                )
+                .frame(width: 12, height: 6)
+        }
+        .padding(.top, 6)
     }
 
     var shouldShowTimeText: Bool {
@@ -359,27 +461,15 @@ private extension OrbView {
                             .offset(x: 0, y: 7)
                     }
                 }
-            } else if (visualState == .focus || visualState == .focusIdleGradient),
-                      let treeImage = BundledImage.swiftUIImage(named: "tree", subdirectory: "Orb") {
-                ZStack {
-                    StrokedText(
-                        text: timeText,
-                        font: timeFont,
-                        strokeColor: Color.black.opacity(0.35),
-                        strokeWidth: 1.6,
-                        fillColor: Color.white.opacity(0.98),
-                        monospacedDigits: shouldUseMonospacedDigits
-                    )
-                    .padding(.trailing, 20)
-                    .overlay(alignment: .trailing) {
-                        treeImage
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 20, height: 20)
-                            .opacity(visualState == .focusIdleGradient ? 0.75 : 0.95)
-                            .offset(x: -4, y: 6)
-                    }
-                }
+            } else if visualState == .focus || visualState == .focusIdleGradient {
+                StrokedText(
+                    text: timeText,
+                    font: timeFont,
+                    strokeColor: Color.black.opacity(0.35),
+                    strokeWidth: 1.6,
+                    fillColor: Color.white.opacity(0.98),
+                    monospacedDigits: shouldUseMonospacedDigits
+                )
             } else {
                 StrokedText(
                     text: timeText,
@@ -395,7 +485,9 @@ private extension OrbView {
 
     var timeYOffset: CGFloat {
         switch visualState {
-        case .break, .redPending, .focus, .focusIdleGradient:
+        case .focus, .focusIdleGradient:
+            8
+        case .break, .redPending:
             0
         default:
             2
@@ -445,10 +537,10 @@ private extension OrbView {
 
     var glowColor: Color {
         switch visualState {
-        case .break, .focusIdleGradient, .redPending:
-            warmOrange
-        case .focus:
+        case .focus, .focusIdleGradient:
             mintColor
+        case .break, .redPending:
+            warmOrange
         case .idle:
             Color.clear
         }
@@ -456,7 +548,7 @@ private extension OrbView {
 
     var shouldAnimateGlow: Bool {
         switch visualState {
-        case .focusIdleGradient, .redPending:
+        case .focus, .focusIdleGradient, .redPending:
             true
         default:
             false
@@ -470,8 +562,10 @@ private extension OrbView {
         case .break:
             (0.16, 0.10)
         case .focus:
-            (0.10, 0.06)
-        case .focusIdleGradient, .redPending:
+            (0.16, 0.10)
+        case .focusIdleGradient:
+            (0.18, 0.11)
+        case .redPending:
             (0.14, 0.08)
         }
     }
@@ -502,6 +596,18 @@ private extension OrbView {
         }
         .frame(width: orbSize.width, height: orbSize.height)
         .allowsHitTesting(false)
+    }
+}
+
+private struct SmileShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY + 1))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.maxX, y: rect.minY + 1),
+            control: CGPoint(x: rect.midX, y: rect.maxY)
+        )
+        return path
     }
 }
 
