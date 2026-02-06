@@ -10,66 +10,58 @@ struct OrbView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     let mintColor = Color(red: 0.0, green: 1.0, blue: 0.6)
-    let coralColor = Color(red: 1.0, green: 0.5, blue: 0.5)
-
     private let orbSize = CGSize(width: 160, height: 140)
     private let cloudSize = CGSize(width: 150, height: 130)
 
     var body: some View {
         ZStack {
-            if hasCloudAssets && visualState != .idle {
-                cloudGlow
-                cloudBase
-                cloudGlassHighlight
+            cloudGlow
+            cloudBase
+            cloudGlassHighlight
 
-                if shouldShowFocusFace {
-                    focusFace
-                        .frame(width: scaledCloudSize.width, height: scaledCloudSize.height, alignment: .center)
-                        .offset(y: -3)
-                        .allowsHitTesting(false)
-                }
+            if shouldShowFocusFace {
+                focusFace
+                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height, alignment: .center)
+                    .offset(y: -3)
+                    .allowsHitTesting(false)
+            }
 
-                if shouldShowIdleFill {
-                    WaveFillView(progress: stateMachine.idleFillProgress)
-                        .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                        .opacity(0.32)
-                        .blendMode(.overlay)
-                        .mask(cloudMask)
-                        .allowsHitTesting(false)
-                }
+            if shouldShowIdleFill {
+                WaveFillView(progress: stateMachine.idleFillProgress)
+                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                    .opacity(0.32)
+                    .blendMode(.overlay)
+                    .mask(cloudMask)
+                    .allowsHitTesting(false)
+            }
 
-                if let pendingTone = pendingToneOverlay {
-                    Rectangle()
-                        .fill(pendingTone)
-                        .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                        .blendMode(.overlay)
-                        .mask(cloudMask)
-                        .allowsHitTesting(false)
-                }
+            if let pendingTone = pendingToneOverlay {
+                Rectangle()
+                    .fill(pendingTone)
+                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                    .blendMode(.overlay)
+                    .mask(cloudMask)
+                    .allowsHitTesting(false)
+            }
 
-                if shouldShowTimeText {
-                    timeContent
-                        .frame(width: scaledCloudSize.width, height: scaledCloudSize.height, alignment: .center)
-                        .shadow(color: Color.black.opacity(0.18), radius: 3, x: 0, y: 2)
-                        .offset(y: timeYOffset)
-                        .allowsHitTesting(false)
-                }
+            if shouldShowTimeText {
+                timeContent
+                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height, alignment: .center)
+                    .shadow(color: Color.black.opacity(0.18), radius: 3, x: 0, y: 2)
+                    .offset(y: timeYOffset)
+                    .allowsHitTesting(false)
+            }
 
-                if let badgeName = badgeAssetName,
-                   let badgeImage = BundledImage.swiftUIImage(named: badgeName, subdirectory: "Orb") {
-                    badgeImage
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: badgeSize, height: badgeSize)
-                        .opacity(badgeOpacity)
-                        .shadow(color: Color.black.opacity(0.15), radius: 2, x: 0, y: 1)
-                        .frame(width: orbSize.width, height: orbSize.height, alignment: .bottomTrailing)
-                        .padding(.trailing, 10)
-                        .padding(.bottom, 8)
-                        .allowsHitTesting(false)
-                }
-            } else if hasCloudAssets == false {
-                fallbackOrb
+            if let badgeSymbol = badgeSymbolName {
+                Image(systemName: badgeSymbol)
+                    .font(.system(size: badgeSize, weight: .semibold, design: .rounded))
+                    .foregroundStyle(badgeColor)
+                    .opacity(badgeOpacity)
+                    .shadow(color: Color.black.opacity(0.15), radius: 2, x: 0, y: 1)
+                    .frame(width: orbSize.width, height: orbSize.height, alignment: .bottomTrailing)
+                    .padding(.trailing, 10)
+                    .padding(.bottom, 8)
+                    .allowsHitTesting(false)
             }
 
             if shouldShowSleepZ {
@@ -107,19 +99,6 @@ struct OrbView: View {
         }
         .onChange(of: shouldAnimateGlow) { _, newValue in
             updateGlowAnimation(animate: newValue)
-        }
-    }
-
-    private var coreColor: Color {
-        switch stateMachine.currentState {
-        case .green:
-            mintColor
-        case .redPending:
-            Color.orange
-        case .red:
-            coralColor
-        case .idle:
-            Color.gray
         }
     }
 
@@ -169,31 +148,29 @@ private extension OrbView {
         }
     }
 
-    var hasCloudAssets: Bool {
-        BundledImage.nsImage(named: cloudAssetName, subdirectory: "Orb") != nil
-    }
-
-    var cloudAssetName: String {
-        switch visualState {
-        case .idle:
-            "sleep"
-        case .break:
-            "break"
-        case .focus, .focusIdleGradient, .redPending:
-            "focus"
-        }
-    }
-
-    var badgeAssetName: String? {
+    var badgeSymbolName: String? {
         switch visualState {
         case .idle:
             nil
         case .focus, .focusIdleGradient:
-            "tree"
+            "leaf.fill"
         case .redPending:
-            "cup"
+            "hourglass"
         case .break:
-            nil
+            "cup.and.saucer.fill"
+        }
+    }
+
+    var badgeColor: Color {
+        switch visualState {
+        case .focus, .focusIdleGradient:
+            Color(red: 0.10, green: 0.74, blue: 0.45)
+        case .redPending:
+            Color.orange.opacity(0.95)
+        case .break:
+            Color(red: 0.95, green: 0.62, blue: 0.24)
+        case .idle:
+            Color.gray
         }
     }
 
@@ -227,34 +204,97 @@ private extension OrbView {
     }
 
     var cloudMask: some View {
-        Group {
-            if let image = BundledImage.swiftUIImage(named: cloudAssetName, subdirectory: "Orb") {
-                image
-                    .resizable()
-                    .interpolation(.high)
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-            } else {
-                Rectangle().opacity(0)
-            }
-        }
+        CloudSilhouetteShape()
+            .fill(Color.white)
+            .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
     }
 
     var cloudBase: some View {
         ZStack {
-            if let image = BundledImage.swiftUIImage(named: cloudAssetName, subdirectory: "Orb") {
-                image
-                    .resizable()
-                    .interpolation(.high)
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                    .opacity(cloudBaseOpacity)
-                    .compositingGroup()
-                    .mask(cloudMask.scaleEffect(maskShrinkScale))
-            }
+            CloudSilhouetteShape()
+                .fill(cloudSurfaceColor.opacity(cloudBaseOpacity))
+                .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+
+            CloudSilhouetteShape()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            cloudTintColor.opacity(cloudTintTopOpacity),
+                            cloudTintColor.opacity(cloudTintMidOpacity),
+                            Color.clear
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                .blendMode(.overlay)
+
+            CloudSilhouetteShape()
+                .stroke(cloudStrokeColor, lineWidth: 1.0)
+                .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                .blendMode(.screen)
         }
+        .compositingGroup()
+        .mask(cloudMask.scaleEffect(maskShrinkScale))
         .frame(width: orbSize.width, height: orbSize.height)
         .allowsHitTesting(false)
+    }
+
+    var cloudSurfaceColor: Color {
+        switch colorScheme {
+        case .dark:
+            return Color(red: 0.13, green: 0.19, blue: 0.24)
+        default:
+            return Color.white
+        }
+    }
+
+    var cloudTintColor: Color {
+        switch visualState {
+        case .focus, .focusIdleGradient:
+            return mintColor
+        case .redPending:
+            return Color.orange
+        case .break:
+            return warmOrange
+        case .idle:
+            return Color.gray
+        }
+    }
+
+    var cloudTintTopOpacity: Double {
+        switch visualState {
+        case .focus:
+            0.24
+        case .focusIdleGradient:
+            0.28
+        case .redPending:
+            0.22
+        case .break:
+            0.20
+        case .idle:
+            0.12
+        }
+    }
+
+    var cloudTintMidOpacity: Double {
+        switch visualState {
+        case .focus:
+            0.12
+        case .focusIdleGradient:
+            0.14
+        case .redPending:
+            0.10
+        case .break:
+            0.10
+        case .idle:
+            0.06
+        }
+    }
+
+    var cloudStrokeColor: Color {
+        colorScheme == .dark ? Color.white.opacity(0.18) : Color.white.opacity(0.72)
     }
 
     var cloudBaseOpacity: Double {
@@ -386,32 +426,25 @@ private extension OrbView {
     }
 
     var sleepZOverlay: some View {
-        Group {
-            if let zImage = BundledImage.swiftUIImage(named: "sleep", subdirectory: "Orb") {
-                ZStack {
-                    zImage
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 32, height: 32)
-                        .offset(x: 10, y: -10)
+        ZStack {
+            Text("Z")
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.white.opacity(0.84))
+                .offset(x: 12, y: -10)
 
-                    zImage
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 26, height: 26)
-                        .offset(x: -2, y: -2)
+            Text("z")
+                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .foregroundStyle(Color.white.opacity(0.70))
+                .offset(x: 1, y: -2)
 
-                    zImage
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 20, height: 20)
-                        .offset(x: -12, y: 4)
-                }
-                .frame(width: orbSize.width, height: orbSize.height, alignment: .topTrailing)
-                .padding(.trailing, 6)
-                .padding(.top, 5)
-            }
+            Text("z")
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundStyle(Color.white.opacity(0.52))
+                .offset(x: -10, y: 4)
         }
+        .frame(width: orbSize.width, height: orbSize.height, alignment: .topTrailing)
+        .padding(.trailing, 7)
+        .padding(.top, 6)
     }
 
     var timeText: String {
@@ -442,7 +475,7 @@ private extension OrbView {
 
     var timeContent: some View {
         Group {
-            if visualState == .break, let cupImage = BundledImage.swiftUIImage(named: "cup", subdirectory: "Orb") {
+            if visualState == .break {
                 ZStack {
                     StrokedText(
                         text: timeText,
@@ -454,11 +487,10 @@ private extension OrbView {
                     )
                     .padding(.trailing, 26)
                     .overlay(alignment: .trailing) {
-                        cupImage
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 22, height: 22)
-                            .offset(x: 0, y: 7)
+                        Image(systemName: "cup.and.saucer.fill")
+                            .font(.system(size: 19, weight: .semibold))
+                            .foregroundStyle(Color(red: 0.98, green: 0.67, blue: 0.32))
+                            .offset(x: 0, y: 8)
                     }
                 }
             } else if visualState == .focus || visualState == .focusIdleGradient {
@@ -570,32 +602,37 @@ private extension OrbView {
         }
     }
 
-    var fallbackOrb: some View {
-        ZStack {
-            Circle()
-                .fill(coreColor)
-                .frame(width: 58, height: 58)
-                .blur(radius: 10)
-                .opacity(0.35)
+}
 
-            Circle()
-                .fill(coreColor.opacity(0.5))
-                .frame(width: 54, height: 54)
+private struct CloudSilhouetteShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let width = rect.width
+        let height = rect.height
 
-            if shouldShowTimeText {
-                StrokedText(
-                    text: timeText,
-                    font: timeFont,
-                    strokeColor: Color.black.opacity(0.38),
-                    strokeWidth: 1.4,
-                    fillColor: Color.white.opacity(0.95),
-                    monospacedDigits: shouldUseMonospacedDigits
-                )
-                .shadow(radius: 2)
-            }
-        }
-        .frame(width: orbSize.width, height: orbSize.height)
-        .allowsHitTesting(false)
+        let baseY = height * 0.42
+        let baseHeight = height - baseY
+        let baseCorner = min(baseHeight * 0.5, width * 0.23)
+        path.addRoundedRect(
+            in: CGRect(x: 0, y: baseY, width: width, height: baseHeight),
+            cornerSize: CGSize(width: baseCorner, height: baseCorner)
+        )
+
+        path.addEllipse(in: CGRect(
+            x: width * 0.14,
+            y: height * 0.14,
+            width: width * 0.40,
+            height: height * 0.56
+        ))
+
+        path.addEllipse(in: CGRect(
+            x: width * 0.44,
+            y: height * 0.05,
+            width: width * 0.46,
+            height: height * 0.64
+        ))
+
+        return path
     }
 }
 
