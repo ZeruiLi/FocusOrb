@@ -416,28 +416,54 @@ private extension OrbView {
         .allowsHitTesting(false)
     }
 
+    @ViewBuilder
     var cloudGlow: some View {
-        let base = staticGlowOpacity
-        let innerOpacity = shouldAnimateGlow ? (glowPulse ? 0.18 : 0.12) : base.inner
-        let outerOpacity = shouldAnimateGlow ? (glowPulse ? 0.10 : 0.05) : base.outer
+        let scale = scaledCloudSize.width / 280.0
 
-        return ZStack {
-            Rectangle()
-                .fill(glowColor)
-                .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                .mask(cloudMask)
-                .blur(radius: 10)
-                .opacity(innerOpacity)
+        if visualState == .focus || visualState == .focusIdleGradient {
+            // Match HTML glow rhythm:
+            // light: rgba(16,185,129,0.3~0.6), radius 15~35
+            // dark:  rgba(52,211,153,0.15~0.35), radius 15~35
+            let baseColor = colorScheme == .dark
+                ? Color(red: 52.0 / 255.0, green: 211.0 / 255.0, blue: 153.0 / 255.0)
+                : Color(red: 16.0 / 255.0, green: 185.0 / 255.0, blue: 129.0 / 255.0)
+            let minOpacity = colorScheme == .dark ? 0.15 : 0.30
+            let maxOpacity = colorScheme == .dark ? 0.35 : 0.60
+            let pulseOpacity = shouldAnimateGlow ? (glowPulse ? maxOpacity : minOpacity) : minOpacity
+            let pulseRadius = shouldAnimateGlow ? (glowPulse ? 35.0 : 15.0) * scale : 15.0 * scale
 
-            Rectangle()
-                .fill(glowColor)
-                .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                .mask(cloudMask)
-                .blur(radius: 18)
-                .opacity(outerOpacity)
+            ZStack {
+                CloudSilhouetteShape()
+                    .fill(Color.white.opacity(0.001))
+                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                    .shadow(color: baseColor.opacity(pulseOpacity), radius: pulseRadius, x: 0, y: 0)
+                    .shadow(color: baseColor.opacity(pulseOpacity * 0.52), radius: pulseRadius * 0.58, x: 0, y: 0)
+            }
+            .frame(width: orbSize.width, height: orbSize.height)
+            .allowsHitTesting(false)
+        } else {
+            let base = staticGlowOpacity
+            let innerOpacity = shouldAnimateGlow ? (glowPulse ? 0.18 : 0.12) : base.inner
+            let outerOpacity = shouldAnimateGlow ? (glowPulse ? 0.10 : 0.05) : base.outer
+
+            ZStack {
+                Rectangle()
+                    .fill(glowColor)
+                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                    .mask(cloudMask)
+                    .blur(radius: 10)
+                    .opacity(innerOpacity)
+
+                Rectangle()
+                    .fill(glowColor)
+                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                    .mask(cloudMask)
+                    .blur(radius: 18)
+                    .opacity(outerOpacity)
+            }
+            .frame(width: orbSize.width, height: orbSize.height)
+            .allowsHitTesting(false)
         }
-        .frame(width: orbSize.width, height: orbSize.height)
-        .allowsHitTesting(false)
     }
 
     var shouldShowTimeText: Bool {
@@ -643,37 +669,35 @@ private extension OrbView {
 
 private struct CloudSilhouetteShape: Shape {
     func path(in rect: CGRect) -> Path {
+        // Geometry mapped 1:1 from the provided HTML:
+        // container: 280x180
+        // puff1: left 40, top 20, size 110x110
+        // puff2: right 40, top 10, size 130x130 (=> x 110)
+        // base:  bottom 0, size 280x100, radius 50
         var path = Path()
         let width = rect.width
         let height = rect.height
 
-        let baseY = height * 0.40
+        let baseY = height * (80.0 / 180.0)
         let baseHeight = height - baseY
-        let baseCorner = min(baseHeight * 0.52, width * 0.24)
+        let baseCorner = min(baseHeight * 0.5, width * (50.0 / 280.0))
         path.addRoundedRect(
             in: CGRect(x: 0, y: baseY, width: width, height: baseHeight),
             cornerSize: CGSize(width: baseCorner, height: baseCorner)
         )
 
         path.addEllipse(in: CGRect(
-            x: width * 0.06,
-            y: height * 0.17,
-            width: width * 0.44,
-            height: height * 0.54
+            x: width * (40.0 / 280.0),
+            y: height * (20.0 / 180.0),
+            width: width * (110.0 / 280.0),
+            height: height * (110.0 / 180.0)
         ))
 
         path.addEllipse(in: CGRect(
-            x: width * 0.30,
-            y: height * 0.02,
-            width: width * 0.42,
-            height: height * 0.58
-        ))
-
-        path.addEllipse(in: CGRect(
-            x: width * 0.50,
-            y: height * 0.13,
-            width: width * 0.42,
-            height: height * 0.54
+            x: width * (110.0 / 280.0),
+            y: height * (10.0 / 180.0),
+            width: width * (130.0 / 280.0),
+            height: height * (130.0 / 180.0)
         ))
 
         return path
