@@ -57,9 +57,10 @@ struct OrbView: View {
                     .foregroundStyle(badgeColor)
                     .opacity(badgeOpacity)
                     .shadow(color: Color.black.opacity(0.12), radius: 2, x: 0, y: 1)
+                    .shadow(color: badgeColor.opacity(0.30), radius: 5, x: 0, y: 0)
                     .frame(width: orbSize.width, height: orbSize.height, alignment: .bottomTrailing)
-                    .padding(.trailing, 12)
-                    .padding(.bottom, 9)
+                    .padding(.trailing, badgeTrailingPadding)
+                    .padding(.bottom, badgeBottomPadding)
                     .allowsHitTesting(false)
             }
 
@@ -176,24 +177,50 @@ private extension OrbView {
     var badgeSize: CGFloat {
         switch visualState {
         case .focus, .focusIdleGradient:
-            14
+            16
         case .redPending:
-            13
-        default:
             14
+        default:
+            16
         }
     }
 
     var badgeOpacity: Double {
         switch visualState {
         case .focus:
-            0.95
+            0.98
         case .focusIdleGradient:
-            0.78
+            0.9
         case .redPending:
             0.9
         default:
             0.92
+        }
+    }
+
+    var badgeTrailingPadding: CGFloat {
+        switch visualState {
+        case .focus, .focusIdleGradient:
+            22
+        case .redPending:
+            16
+        case .break:
+            14
+        case .idle:
+            12
+        }
+    }
+
+    var badgeBottomPadding: CGFloat {
+        switch visualState {
+        case .focus, .focusIdleGradient:
+            16
+        case .redPending:
+            12
+        case .break:
+            10
+        case .idle:
+            9
         }
     }
 
@@ -443,17 +470,20 @@ private extension OrbView {
             let baseColor = colorScheme == .dark
                 ? Color(red: 52.0 / 255.0, green: 211.0 / 255.0, blue: 153.0 / 255.0)
                 : Color(red: 16.0 / 255.0, green: 185.0 / 255.0, blue: 129.0 / 255.0)
-            let minOpacity = colorScheme == .dark ? 0.15 : 0.30
-            let maxOpacity = colorScheme == .dark ? 0.35 : 0.60
+            // Increase pulse intensity so it remains visible on bright backgrounds.
+            let minOpacity = colorScheme == .dark ? 0.24 : 0.48
+            let maxOpacity = colorScheme == .dark ? 0.52 : 0.92
             let pulseOpacity = shouldAnimateGlow ? (glowPulse ? maxOpacity : minOpacity) : minOpacity
-            let pulseRadius = shouldAnimateGlow ? (glowPulse ? 35.0 : 15.0) * scale : 15.0 * scale
+            let pulseRadius = shouldAnimateGlow ? (glowPulse ? 48.0 : 22.0) * scale : 22.0 * scale
 
             ZStack {
                 CloudSilhouetteShape()
-                    .fill(Color.white.opacity(0.001))
+                    .fill(Color.white.opacity(0.012))
                     .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
                     .shadow(color: baseColor.opacity(pulseOpacity), radius: pulseRadius, x: 0, y: 0)
-                    .shadow(color: baseColor.opacity(pulseOpacity * 0.52), radius: pulseRadius * 0.58, x: 0, y: 0)
+                    .shadow(color: baseColor.opacity(pulseOpacity * 0.62), radius: pulseRadius * 1.45, x: 0, y: 0)
+                    .shadow(color: baseColor.opacity(pulseOpacity * 0.30), radius: pulseRadius * 2.10, x: 0, y: 0)
+                    .blendMode(.plusLighter)
             }
             .frame(width: orbSize.width, height: orbSize.height)
             .allowsHitTesting(false)
