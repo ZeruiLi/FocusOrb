@@ -407,7 +407,10 @@ private extension OrbView {
     }
 
     var cloudOuterContour: Color {
-        colorScheme == .dark ? Color.white : Color.white
+        if visualState == .break {
+            return Color(red: 251.0 / 255.0, green: 191.0 / 255.0, blue: 36.0 / 255.0)
+        }
+        return Color.white
     }
 
     var cloudTintTopOpacity: Double {
@@ -419,7 +422,7 @@ private extension OrbView {
         case .redPending:
             0.16
         case .break:
-            0.18
+            0.26
         case .idle:
             0.08
         }
@@ -434,7 +437,7 @@ private extension OrbView {
         case .redPending:
             0.08
         case .break:
-            0.10
+            0.16
         case .idle:
             0.03
         }
@@ -538,14 +541,26 @@ private extension OrbView {
             .allowsHitTesting(false)
         } else if visualState == .break {
             let warm = Color(red: 251.0 / 255.0, green: 191.0 / 255.0, blue: 36.0 / 255.0)
+            let minOpacity = colorScheme == .dark ? 0.32 : 0.45
+            let maxOpacity = colorScheme == .dark ? 0.60 : 0.86
+            let pulseOpacity = shouldAnimateGlow ? (glowPulse ? maxOpacity : minOpacity) : minOpacity
+            let minRadius = 24.0 * scale
+            let maxRadius = 68.0 * scale
+            let pulseRadius = shouldAnimateGlow ? (glowPulse ? maxRadius : minRadius) : minRadius
+
             ZStack {
                 // Warm glow around cloud silhouette only (avoid blurred circle to prevent square artifact).
                 CloudSilhouetteShape()
-                    .fill(Color.white.opacity(0.010))
+                    .fill(Color.white.opacity(0.025))
                     .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                    .shadow(color: warm.opacity(0.36), radius: 52 * scale, x: 0, y: 18 * scale)
-                    .shadow(color: warm.opacity(0.24), radius: 34 * scale, x: 0, y: 10 * scale)
-                    .shadow(color: warm.opacity(0.14), radius: 18 * scale, x: 0, y: 4 * scale)
+                    .shadow(color: warm.opacity(pulseOpacity), radius: pulseRadius, x: 0, y: 18 * scale)
+                    .shadow(color: warm.opacity(pulseOpacity * 0.62), radius: pulseRadius * 0.68, x: 0, y: 10 * scale)
+                    .shadow(color: warm.opacity(pulseOpacity * 0.34), radius: pulseRadius * 0.38, x: 0, y: 4 * scale)
+
+                CloudSilhouetteShape()
+                    .fill(Color.white.opacity(0.018))
+                    .frame(width: scaledCloudSize.width * 1.02, height: scaledCloudSize.height * 1.02)
+                    .shadow(color: warm.opacity(pulseOpacity * 0.42), radius: pulseRadius * 1.15, x: 0, y: 0)
             }
             .frame(width: orbSize.width, height: orbSize.height)
             .allowsHitTesting(false)
@@ -744,7 +759,7 @@ private extension OrbView {
 
     var shouldAnimateGlow: Bool {
         switch visualState {
-        case .focus, .focusIdleGradient, .redPending:
+        case .focus, .focusIdleGradient, .redPending, .break:
             true
         default:
             false
