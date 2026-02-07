@@ -419,7 +419,7 @@ private extension OrbView {
         case .redPending:
             0.16
         case .break:
-            0.08
+            0.18
         case .idle:
             0.08
         }
@@ -434,7 +434,7 @@ private extension OrbView {
         case .redPending:
             0.08
         case .break:
-            0.04
+            0.10
         case .idle:
             0.03
         }
@@ -539,18 +539,13 @@ private extension OrbView {
         } else if visualState == .break {
             let warm = Color(red: 251.0 / 255.0, green: 191.0 / 255.0, blue: 36.0 / 255.0)
             ZStack {
-                // warm-glow-outer: drop-shadow(0 20px 40px rgba(251,191,36,0.2))
+                // Warm glow around cloud silhouette only (avoid blurred circle to prevent square artifact).
                 CloudSilhouetteShape()
-                    .fill(Color.white.opacity(0.001))
+                    .fill(Color.white.opacity(0.010))
                     .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                    .shadow(color: warm.opacity(0.20), radius: 40 * scale, x: 0, y: 20 * scale)
-                    .shadow(color: warm.opacity(0.12), radius: 22 * scale, x: 0, y: 10 * scale)
-
-                // soft ambient warm halo similar to page-level amber blur
-                Circle()
-                    .fill(Color(red: 255.0 / 255.0, green: 251.0 / 255.0, blue: 235.0 / 255.0).opacity(0.30))
-                    .frame(width: 270 * scale, height: 270 * scale)
-                    .blur(radius: 64 * scale)
+                    .shadow(color: warm.opacity(0.36), radius: 52 * scale, x: 0, y: 18 * scale)
+                    .shadow(color: warm.opacity(0.24), radius: 34 * scale, x: 0, y: 10 * scale)
+                    .shadow(color: warm.opacity(0.14), radius: 18 * scale, x: 0, y: 4 * scale)
             }
             .frame(width: orbSize.width, height: orbSize.height)
             .allowsHitTesting(false)
