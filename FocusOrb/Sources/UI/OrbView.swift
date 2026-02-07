@@ -26,6 +26,13 @@ struct OrbView: View {
                     .allowsHitTesting(false)
             }
 
+            if shouldShowRestFace {
+                restFace
+                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height, alignment: .center)
+                    .offset(y: -20)
+                    .allowsHitTesting(false)
+            }
+
             if shouldShowIdleFill {
                 WaveFillView(progress: stateMachine.idleFillProgress)
                     .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
@@ -168,7 +175,7 @@ private extension OrbView {
         case .redPending:
             Color(red: 0.95, green: 0.62, blue: 0.24)
         case .break:
-            Color(red: 0.87, green: 0.49, blue: 0.18)
+            Color(red: 245.0 / 255.0, green: 158.0 / 255.0, blue: 11.0 / 255.0)
         case .idle:
             Color.gray
         }
@@ -180,6 +187,8 @@ private extension OrbView {
             16
         case .redPending:
             14
+        case .break:
+            15
         default:
             16
         }
@@ -205,7 +214,7 @@ private extension OrbView {
         case .redPending:
             16
         case .break:
-            14
+            10
         case .idle:
             12
         }
@@ -218,7 +227,7 @@ private extension OrbView {
         case .redPending:
             12
         case .break:
-            10
+            25
         case .idle:
             9
         }
@@ -226,6 +235,10 @@ private extension OrbView {
 
     var shouldShowFocusFace: Bool {
         visualState == .focus || visualState == .focusIdleGradient
+    }
+
+    var shouldShowRestFace: Bool {
+        visualState == .break
     }
 
     var faceFeatureColor: Color {
@@ -250,6 +263,18 @@ private extension OrbView {
                     style: StrokeStyle(lineWidth: 1.7, lineCap: .round, lineJoin: .round)
                 )
                 .frame(width: 12, height: 6)
+        }
+    }
+
+    var restFace: some View {
+        HStack(spacing: 10) {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(Color(red: 71.0 / 255.0, green: 85.0 / 255.0, blue: 105.0 / 255.0).opacity(0.60))
+                .frame(width: 14, height: 2.5)
+
+            RoundedRectangle(cornerRadius: 2)
+                .fill(Color(red: 71.0 / 255.0, green: 85.0 / 255.0, blue: 105.0 / 255.0).opacity(0.60))
+                .frame(width: 14, height: 2.5)
         }
     }
 
@@ -300,6 +325,24 @@ private extension OrbView {
                 .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
                 .blendMode(.overlay)
 
+            if visualState == .break {
+                CloudSilhouetteShape()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color(red: 251.0 / 255.0, green: 191.0 / 255.0, blue: 36.0 / 255.0).opacity(0.30),
+                                Color(red: 251.0 / 255.0, green: 191.0 / 255.0, blue: 36.0 / 255.0).opacity(0.16),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 2,
+                            endRadius: scaledCloudSize.width * 0.62
+                        )
+                    )
+                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                    .blendMode(.softLight)
+            }
+
             // Outer contour only; no per-piece strokes.
             CloudSilhouetteShape()
                 .fill(
@@ -331,6 +374,9 @@ private extension OrbView {
         case .dark:
             return Color(red: 0.20, green: 0.28, blue: 0.35)
         default:
+            if visualState == .break {
+                return Color.white
+            }
             return Color(red: 0.98, green: 1.00, blue: 0.99)
         }
     }
@@ -340,6 +386,9 @@ private extension OrbView {
         case .dark:
             return Color(red: 0.14, green: 0.20, blue: 0.26)
         default:
+            if visualState == .break {
+                return Color(red: 0.98, green: 0.99, blue: 0.98)
+            }
             return Color(red: 0.93, green: 0.99, blue: 0.97)
         }
     }
@@ -351,7 +400,7 @@ private extension OrbView {
         case .redPending:
             return Color.orange
         case .break:
-            return warmOrange
+            return Color(red: 251.0 / 255.0, green: 191.0 / 255.0, blue: 36.0 / 255.0)
         case .idle:
             return Color.gray
         }
@@ -370,7 +419,7 @@ private extension OrbView {
         case .redPending:
             0.16
         case .break:
-            0.14
+            0.08
         case .idle:
             0.08
         }
@@ -385,7 +434,7 @@ private extension OrbView {
         case .redPending:
             0.08
         case .break:
-            0.08
+            0.04
         case .idle:
             0.03
         }
@@ -417,8 +466,8 @@ private extension OrbView {
             topHighlightOpacity = 0.12
             edgeHighlightOpacity = 0.06
         case .break:
-            topHighlightOpacity = 0.10
-            edgeHighlightOpacity = 0.05
+            topHighlightOpacity = 0.16
+            edgeHighlightOpacity = 0.08
         case .idle:
             topHighlightOpacity = 0
             edgeHighlightOpacity = 0
@@ -484,6 +533,24 @@ private extension OrbView {
                     .shadow(color: baseColor.opacity(pulseOpacity * 0.62), radius: pulseRadius * 1.45, x: 0, y: 0)
                     .shadow(color: baseColor.opacity(pulseOpacity * 0.30), radius: pulseRadius * 2.10, x: 0, y: 0)
                     .blendMode(.plusLighter)
+            }
+            .frame(width: orbSize.width, height: orbSize.height)
+            .allowsHitTesting(false)
+        } else if visualState == .break {
+            let warm = Color(red: 251.0 / 255.0, green: 191.0 / 255.0, blue: 36.0 / 255.0)
+            ZStack {
+                // warm-glow-outer: drop-shadow(0 20px 40px rgba(251,191,36,0.2))
+                CloudSilhouetteShape()
+                    .fill(Color.white.opacity(0.001))
+                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                    .shadow(color: warm.opacity(0.20), radius: 40 * scale, x: 0, y: 20 * scale)
+                    .shadow(color: warm.opacity(0.12), radius: 22 * scale, x: 0, y: 10 * scale)
+
+                // soft ambient warm halo similar to page-level amber blur
+                Circle()
+                    .fill(Color(red: 255.0 / 255.0, green: 251.0 / 255.0, blue: 235.0 / 255.0).opacity(0.30))
+                    .frame(width: 270 * scale, height: 270 * scale)
+                    .blur(radius: 64 * scale)
             }
             .frame(width: orbSize.width, height: orbSize.height)
             .allowsHitTesting(false)
@@ -564,7 +631,7 @@ private extension OrbView {
             .system(size: 32, weight: .bold, design: .rounded)
         case .green, .red:
             .system(
-                size: visualState == .break ? 32 : (visualState == .focus || visualState == .focusIdleGradient) ? 34 : 34,
+                size: visualState == .break ? 34 : (visualState == .focus || visualState == .focusIdleGradient) ? 34 : 34,
                 weight: .bold,
                 design: .rounded
             )
@@ -576,23 +643,11 @@ private extension OrbView {
     var timeContent: some View {
         Group {
             if visualState == .break {
-                ZStack {
-                    StrokedText(
-                        text: timeText,
-                        font: timeFont,
-                        strokeColor: Color(red: 0.22, green: 0.12, blue: 0.05).opacity(0.55),
-                        strokeWidth: 1.0,
-                        fillColor: Color(red: 0.98, green: 0.67, blue: 0.32),
-                        monospacedDigits: shouldUseMonospacedDigits
-                    )
-                    .padding(.trailing, 26)
-                    .overlay(alignment: .trailing) {
-                        Image(systemName: "cup.and.saucer.fill")
-                            .font(.system(size: 19, weight: .semibold))
-                            .foregroundStyle(Color(red: 0.98, green: 0.67, blue: 0.32))
-                            .offset(x: 0, y: 8)
-                    }
-                }
+                Text(timeText)
+                    .font(timeFont)
+                    .monospacedDigit()
+                    .tracking(-0.4)
+                    .foregroundStyle(Color(red: 51.0 / 255.0, green: 65.0 / 255.0, blue: 85.0 / 255.0))
             } else if visualState == .focus || visualState == .focusIdleGradient {
                 if shouldUseMonospacedDigits {
                     Text(timeText)
@@ -640,7 +695,9 @@ private extension OrbView {
         switch visualState {
         case .focus, .focusIdleGradient:
             14
-        case .break, .redPending:
+        case .break:
+            12
+        case .redPending:
             8
         default:
             2
