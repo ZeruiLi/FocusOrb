@@ -4,7 +4,7 @@ struct OrbView: View {
     @ObservedObject var stateMachine: OrbStateMachine
 
     @State private var isLongPressing = false
-    @State private var glowPulse = false
+    @State private var glowPhase: CGFloat = 0
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
@@ -116,18 +116,18 @@ struct OrbView: View {
 
     private func updateGlowAnimation(animate: Bool) {
         if reduceMotion {
-            glowPulse = false
+            glowPhase = 0
             return
         }
 
         if animate {
-            glowPulse = false
-            withAnimation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true)) {
-                glowPulse = true
+            glowPhase = 0
+            withAnimation(.easeInOut(duration: 2.2).repeatForever(autoreverses: true)) {
+                glowPhase = 1
             }
         } else {
             withAnimation(.easeOut(duration: 0.25)) {
-                glowPulse = false
+                glowPhase = 0
             }
         }
     }
@@ -489,6 +489,7 @@ private extension OrbView {
     @ViewBuilder
     var cloudGlow: some View {
         let scale = scaledCloudSize.width / 280.0
+        let progress = Double(max(0, min(1, glowPhase)))
 
         if visualState == .focus || visualState == .focusIdleGradient {
             // Match HTML glow rhythm:
@@ -500,8 +501,8 @@ private extension OrbView {
             // Increase pulse intensity so it remains visible on bright backgrounds.
             let minOpacity = colorScheme == .dark ? 0.24 : 0.48
             let maxOpacity = colorScheme == .dark ? 0.52 : 0.92
-            let pulseOpacity = shouldAnimateGlow ? (glowPulse ? maxOpacity : minOpacity) : minOpacity
-            let pulseRadius = shouldAnimateGlow ? (glowPulse ? 48.0 : 22.0) * scale : 22.0 * scale
+            let pulseOpacity = shouldAnimateGlow ? (minOpacity + ((maxOpacity - minOpacity) * progress)) : minOpacity
+            let pulseRadius = shouldAnimateGlow ? ((22.0 + ((48.0 - 22.0) * progress)) * scale) : 22.0 * scale
 
             ZStack {
                 CloudSilhouetteShape()
@@ -516,38 +517,37 @@ private extension OrbView {
             .allowsHitTesting(false)
         } else if visualState == .break {
             let warm = Color(red: 251.0 / 255.0, green: 191.0 / 255.0, blue: 36.0 / 255.0)
-            let minOpacity = colorScheme == .dark ? 0.32 : 0.45
-            let maxOpacity = colorScheme == .dark ? 0.60 : 0.86
-            let pulseOpacity = shouldAnimateGlow ? (glowPulse ? maxOpacity : minOpacity) : minOpacity
-            let minRadius = 24.0 * scale
-            let maxRadius = 68.0 * scale
-            let pulseRadius = shouldAnimateGlow ? (glowPulse ? maxRadius : minRadius) : minRadius
-            let phase: CGFloat = shouldAnimateGlow ? (glowPulse ? 1.0 : 0.0) : 0.0
-            let auraScale = 1.0 + (0.08 * phase)
+            let phase = shouldAnimateGlow ? progress : 0
+            let innerFill = colorScheme == .dark ? (0.20 + (0.22 * phase)) : (0.18 + (0.28 * phase))
+            let ringOpacity = colorScheme == .dark ? (0.26 + (0.26 * phase)) : (0.24 + (0.38 * phase))
+            let glowOpacity = colorScheme == .dark ? (0.28 + (0.20 * phase)) : (0.30 + (0.28 * phase))
+            let auraScale = 1.0 + (0.020 * phase)
 
             ZStack {
-                // Strong, cloud-shaped breathing glow visible on white backgrounds.
                 CloudSilhouetteShape()
-                    .fill(warm.opacity(0.14 + (0.14 * phase)))
+                    .fill(warm.opacity(innerFill))
                     .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
                     .scaleEffect(auraScale)
-                    .blur(radius: 4.0 + (4.0 * phase))
-                    .shadow(color: warm.opacity(pulseOpacity), radius: pulseRadius, x: 0, y: 18 * scale)
-                    .shadow(color: warm.opacity(pulseOpacity * 0.62), radius: pulseRadius * 0.68, x: 0, y: 10 * scale)
-                    .shadow(color: warm.opacity(pulseOpacity * 0.34), radius: pulseRadius * 0.38, x: 0, y: 4 * scale)
+                    .blendMode(.softLight)
 
                 CloudSilhouetteShape()
-                    .fill(warm.opacity(0.10 + (0.12 * phase)))
-                    .frame(width: scaledCloudSize.width * 1.06, height: scaledCloudSize.height * 1.06)
-                    .blur(radius: 12.0 + (8.0 * phase))
-                    .shadow(color: warm.opacity(pulseOpacity * 0.56), radius: pulseRadius * 1.25, x: 0, y: 0)
+                    .stroke(warm.opacity(ringOpacity), lineWidth: 1.1 + (0.8 * phase))
+                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                    .blendMode(.plusLighter)
+
+                // Keep radius moderate to avoid panel-edge square artifact.
+                CloudSilhouetteShape()
+                    .fill(Color.white.opacity(0.010))
+                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                    .shadow(color: warm.opacity(glowOpacity), radius: 12 * scale, x: 0, y: 3 * scale)
+                    .shadow(color: warm.opacity(glowOpacity * 0.65), radius: 7 * scale, x: 0, y: 2 * scale)
             }
             .frame(width: orbSize.width, height: orbSize.height)
             .allowsHitTesting(false)
         } else {
             let base = staticGlowOpacity
-            let innerOpacity = shouldAnimateGlow ? (glowPulse ? 0.18 : 0.12) : base.inner
-            let outerOpacity = shouldAnimateGlow ? (glowPulse ? 0.10 : 0.05) : base.outer
+            let innerOpacity = shouldAnimateGlow ? (0.12 + (0.06 * progress)) : base.inner
+            let outerOpacity = shouldAnimateGlow ? (0.05 + (0.05 * progress)) : base.outer
 
             ZStack {
                 Rectangle()
