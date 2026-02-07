@@ -343,25 +343,7 @@ private extension OrbView {
                     .blendMode(.softLight)
             }
 
-            // Outer contour only; no per-piece strokes.
-            CloudSilhouetteShape()
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            cloudOuterContour.opacity(colorScheme == .dark ? 0.28 : 0.52),
-                            cloudOuterContour.opacity(colorScheme == .dark ? 0.10 : 0.20)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                .blur(radius: 0.8)
-                .mask(
-                    CloudSilhouetteShape()
-                        .stroke(lineWidth: 1.2)
-                        .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                )
+            // No geometry stroke here: avoid exposing internal construction outlines.
         }
         .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
         .compositingGroup()
@@ -404,13 +386,6 @@ private extension OrbView {
         case .idle:
             return Color.gray
         }
-    }
-
-    var cloudOuterContour: Color {
-        if visualState == .break {
-            return Color(red: 251.0 / 255.0, green: 191.0 / 255.0, blue: 36.0 / 255.0)
-        }
-        return Color.white
     }
 
     var cloudTintTopOpacity: Double {
@@ -547,20 +522,25 @@ private extension OrbView {
             let minRadius = 24.0 * scale
             let maxRadius = 68.0 * scale
             let pulseRadius = shouldAnimateGlow ? (glowPulse ? maxRadius : minRadius) : minRadius
+            let phase: CGFloat = shouldAnimateGlow ? (glowPulse ? 1.0 : 0.0) : 0.0
+            let auraScale = 1.0 + (0.08 * phase)
 
             ZStack {
-                // Warm glow around cloud silhouette only (avoid blurred circle to prevent square artifact).
+                // Strong, cloud-shaped breathing glow visible on white backgrounds.
                 CloudSilhouetteShape()
-                    .fill(Color.white.opacity(0.025))
+                    .fill(warm.opacity(0.14 + (0.14 * phase)))
                     .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                    .scaleEffect(auraScale)
+                    .blur(radius: 4.0 + (4.0 * phase))
                     .shadow(color: warm.opacity(pulseOpacity), radius: pulseRadius, x: 0, y: 18 * scale)
                     .shadow(color: warm.opacity(pulseOpacity * 0.62), radius: pulseRadius * 0.68, x: 0, y: 10 * scale)
                     .shadow(color: warm.opacity(pulseOpacity * 0.34), radius: pulseRadius * 0.38, x: 0, y: 4 * scale)
 
                 CloudSilhouetteShape()
-                    .fill(Color.white.opacity(0.018))
-                    .frame(width: scaledCloudSize.width * 1.02, height: scaledCloudSize.height * 1.02)
-                    .shadow(color: warm.opacity(pulseOpacity * 0.42), radius: pulseRadius * 1.15, x: 0, y: 0)
+                    .fill(warm.opacity(0.10 + (0.12 * phase)))
+                    .frame(width: scaledCloudSize.width * 1.06, height: scaledCloudSize.height * 1.06)
+                    .blur(radius: 12.0 + (8.0 * phase))
+                    .shadow(color: warm.opacity(pulseOpacity * 0.56), radius: pulseRadius * 1.25, x: 0, y: 0)
             }
             .frame(width: orbSize.width, height: orbSize.height)
             .allowsHitTesting(false)
