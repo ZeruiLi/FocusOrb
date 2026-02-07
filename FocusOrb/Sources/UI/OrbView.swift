@@ -10,7 +10,7 @@ struct OrbView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     let mintColor = Color(red: 0.0, green: 1.0, blue: 0.6)
-    private let orbSize = CGSize(width: 160, height: 140)
+    private let orbSize = CGSize(width: 200, height: 170)
     private let cloudSize = CGSize(width: 150, height: 96)
 
     var body: some View {
@@ -65,7 +65,7 @@ struct OrbView: View {
                     .opacity(badgeOpacity)
                     .shadow(color: Color.black.opacity(0.12), radius: 2, x: 0, y: 1)
                     .shadow(color: badgeColor.opacity(0.30), radius: 5, x: 0, y: 0)
-                    .frame(width: orbSize.width, height: orbSize.height, alignment: .bottomTrailing)
+                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height, alignment: .bottomTrailing)
                     .padding(.trailing, badgeTrailingPadding)
                     .padding(.bottom, badgeBottomPadding)
                     .allowsHitTesting(false)
@@ -210,26 +210,26 @@ private extension OrbView {
     var badgeTrailingPadding: CGFloat {
         switch visualState {
         case .focus, .focusIdleGradient:
-            22
+            8
         case .redPending:
-            16
+            8
         case .break:
-            10
+            7
         case .idle:
-            12
+            8
         }
     }
 
     var badgeBottomPadding: CGFloat {
         switch visualState {
         case .focus, .focusIdleGradient:
-            16
+            7
         case .redPending:
-            12
+            7
         case .break:
-            25
+            8
         case .idle:
-            9
+            7
         }
     }
 
@@ -518,29 +518,36 @@ private extension OrbView {
         } else if visualState == .break {
             let warm = Color(red: 251.0 / 255.0, green: 191.0 / 255.0, blue: 36.0 / 255.0)
             let phase = shouldAnimateGlow ? progress : 0
-            let innerFill = colorScheme == .dark ? (0.20 + (0.22 * phase)) : (0.18 + (0.28 * phase))
-            let ringOpacity = colorScheme == .dark ? (0.26 + (0.26 * phase)) : (0.24 + (0.38 * phase))
-            let glowOpacity = colorScheme == .dark ? (0.28 + (0.20 * phase)) : (0.30 + (0.28 * phase))
-            let auraScale = 1.0 + (0.020 * phase)
+            let innerFill = colorScheme == .dark ? (0.24 + (0.28 * phase)) : (0.26 + (0.40 * phase))
+            let ringOpacity = colorScheme == .dark ? (0.34 + (0.30 * phase)) : (0.36 + (0.44 * phase))
+            let glowOpacity = colorScheme == .dark ? (0.34 + (0.26 * phase)) : (0.40 + (0.36 * phase))
+            let auraScale = 1.015 + (0.055 * phase)
+            let primaryRadius = (16.0 + (14.0 * phase)) * scale
+            let secondaryRadius = (10.0 + (8.0 * phase)) * scale
 
             ZStack {
                 CloudSilhouetteShape()
                     .fill(warm.opacity(innerFill))
                     .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
                     .scaleEffect(auraScale)
-                    .blendMode(.softLight)
+                    .blendMode(.screen)
 
                 CloudSilhouetteShape()
-                    .stroke(warm.opacity(ringOpacity), lineWidth: 1.1 + (0.8 * phase))
+                    .fill(warm.opacity(ringOpacity))
                     .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                    .blur(radius: 0.9 + (1.1 * phase))
+                    .mask(
+                        CloudSilhouetteShape()
+                            .stroke(lineWidth: 1.2 + (0.9 * phase))
+                            .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
+                    )
                     .blendMode(.plusLighter)
 
-                // Keep radius moderate to avoid panel-edge square artifact.
                 CloudSilhouetteShape()
-                    .fill(Color.white.opacity(0.010))
+                    .fill(Color.white.opacity(0.018))
                     .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                    .shadow(color: warm.opacity(glowOpacity), radius: 12 * scale, x: 0, y: 3 * scale)
-                    .shadow(color: warm.opacity(glowOpacity * 0.65), radius: 7 * scale, x: 0, y: 2 * scale)
+                    .shadow(color: warm.opacity(glowOpacity), radius: primaryRadius, x: 0, y: 4 * scale)
+                    .shadow(color: warm.opacity(glowOpacity * 0.66), radius: secondaryRadius, x: 0, y: 2 * scale)
             }
             .frame(width: orbSize.width, height: orbSize.height)
             .allowsHitTesting(false)
@@ -599,9 +606,9 @@ private extension OrbView {
                 .foregroundStyle(Color.white.opacity(0.52))
                 .offset(x: -10, y: 4)
         }
-        .frame(width: orbSize.width, height: orbSize.height, alignment: .topTrailing)
-        .padding(.trailing, 7)
-        .padding(.top, 6)
+        .frame(width: scaledCloudSize.width, height: scaledCloudSize.height, alignment: .topTrailing)
+        .padding(.trailing, 6)
+        .padding(.top, 2)
     }
 
     var timeText: String {
