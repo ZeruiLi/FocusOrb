@@ -23,6 +23,10 @@ class OrbStateMachine: ObservableObject {
     private var idleMonitorTimer: Timer?
     private var greenStartTimeBeforePending: Date?
 
+    var activeSessionId: UUID? {
+        currentSessionId
+    }
+
     init(eventStore: EventStore, idleTimeProvider: IdleTimeProviding = SystemIdleTimeProvider()) {
         self.eventStore = eventStore
         self.idleTimeProvider = idleTimeProvider

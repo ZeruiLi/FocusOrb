@@ -14,6 +14,8 @@ struct SessionSummaryView: View {
     let showReflection: Bool
     let onSetMood: (SessionMood?) -> Void
     let onClose: () -> Void
+    let onConfirmEnd: (() -> Void)?
+    let onContinueSession: (() -> Void)?
 
     @State private var isExporting = false
     @State private var exportError: String?
@@ -119,7 +121,37 @@ struct SessionSummaryView: View {
             .disabled(isExporting)
             .accessibilityLabel(Text("导出专注小卡"))
             
-            if showReflection {
+            if let onConfirmEnd, let onContinueSession {
+                VStack(spacing: 10) {
+                    Text("确认后将结束本次会话")
+                        .font(.caption)
+                        .foregroundColor(.secondary.opacity(0.8))
+
+                    HStack(spacing: 10) {
+                        Button {
+                            onContinueSession()
+                        } label: {
+                            Text("继续会话")
+                                .font(.caption)
+                                .foregroundColor(AppTheme.Colors.textSecondary)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(Material.thin)
+                                .clipShape(Capsule())
+                                .overlay(
+                                    Capsule()
+                                        .stroke(AppTheme.Colors.surfaceStroke, lineWidth: 1)
+                                )
+                        }
+                        .buttonStyle(.plain)
+
+                        PrimaryCapsuleButton(title: "确认结束", systemImage: "checkmark", style: .warm) {
+                            onConfirmEnd()
+                        }
+                    }
+                }
+                .padding(.top, 6)
+            } else if showReflection {
                 VStack(spacing: 10) {
                     Text("这次感觉如何？（可选）")
                         .font(.caption)

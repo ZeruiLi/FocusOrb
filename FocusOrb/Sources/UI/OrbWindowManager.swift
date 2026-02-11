@@ -3,6 +3,10 @@ import AppKit
 import Combine
 import UserNotifications
 
+final class OrbInteractionState: ObservableObject {
+    @Published var isPressed = false
+}
+
 // Custom NSHostingView subclass to intercept right-clicks
 class RightClickHostingView<Content: View>: NSHostingView<Content> {
     var onRightClick: ((NSPoint) -> Void)?
@@ -14,81 +18,93 @@ class RightClickHostingView<Content: View>: NSHostingView<Content> {
     }
 }
 
-// Custom NSPanel to handle drag threshold with delayed event dispatch
+// Custom NSPanel that resolves each input sequence into exactly one action:
+// tap, long-press, or drag.
 class DraggablePanel: NSPanel {
-    private var pendingMouseDownEvent: NSEvent?
-    private var isDragging = false
-    private var hasSentMouseDown = false
-    private let dragThreshold: CGFloat = 10.0
-    private var mouseDownTimer: Timer?
-    
-    // Helper to avoid calling super in closure
-    private func forwardEvent(_ event: NSEvent) {
-        super.sendEvent(event)
+    enum InputPhase {
+        case idle
+        case pressed
+        case dragging
+        case longPressed
     }
-    
+
+    var onTap: (() -> Void)?
+    var onLongPress: (() -> Void)?
+    var onDragBegan: (() -> Void)?
+    var onDragEnded: (() -> Void)?
+    var onPressStateChanged: ((Bool) -> Void)?
+
+    private var phase: InputPhase = .idle
+    private var mouseDownPoint: NSPoint?
+    private let dragThreshold: CGFloat = 10.0
+    private let longPressDuration: TimeInterval = 0.8
+    private var longPressTimer: Timer?
+
+    deinit {
+        longPressTimer?.invalidate()
+    }
+
     override func sendEvent(_ event: NSEvent) {
         if event.type == .leftMouseDown {
-            // Store the event and start a timer
-            pendingMouseDownEvent = event
-            isDragging = false
-            hasSentMouseDown = false
-            
-            // Wait 100ms to see if user is dragging or clicking
-            mouseDownTimer?.invalidate()
-            mouseDownTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false) { [weak self] _ in
-                guard let self = self, let downEvent = self.pendingMouseDownEvent else { return }
-                
-                // If we haven't started dragging by now, it's a click/long-press
-                if !self.isDragging {
-                    self.forwardEvent(downEvent)
-                    self.hasSentMouseDown = true
-                }
-            }
+            beginPress(at: event.locationInWindow)
         } else if event.type == .leftMouseDragged {
-            // ANY drag movement should cancel the timer (even small movements)
-            if !isDragging && mouseDownTimer != nil {
-                mouseDownTimer?.invalidate()
+            guard let down = mouseDownPoint else { return }
+            let dx = abs(event.locationInWindow.x - down.x)
+            let dy = abs(event.locationInWindow.y - down.y)
+            let passedThreshold = dx > dragThreshold || dy > dragThreshold
+
+            if phase == .pressed && passedThreshold {
+                phase = .dragging
+                longPressTimer?.invalidate()
+                onPressStateChanged?(false)
+                onDragBegan?()
             }
-            
-            if let downEvent = pendingMouseDownEvent {
-                // Check if we moved enough to call it a "real" drag
-                let dx = abs(event.locationInWindow.x - downEvent.locationInWindow.x)
-                let dy = abs(event.locationInWindow.y - downEvent.locationInWindow.y)
-                
-                if dx > dragThreshold || dy > dragThreshold {
-                    isDragging = true
-                }
-            }
-            
-            if isDragging {
-                // Handle window dragging manually
+
+            if phase == .dragging {
                 self.setFrameOrigin(NSPoint(x: self.frame.origin.x + event.deltaX, y: self.frame.origin.y - event.deltaY))
-            } else if hasSentMouseDown {
-                // Timer has fired, forward drag events to SwiftUI (for small jitter during long press)
-                super.sendEvent(event)
             }
-            // If timer hasn't fired and not dragging, don't send drag events (waiting for timer)
         } else if event.type == .leftMouseUp {
-            mouseDownTimer?.invalidate()
-            
-            if isDragging {
-                // We were dragging, do NOT send any events to SwiftUI
-            } else if hasSentMouseDown {
-                // Timer already sent MouseDown, just send MouseUp for normal click/long-press
-                super.sendEvent(event)
-            } else if let downEvent = pendingMouseDownEvent {
-                // Very fast click (< 100ms), send both Down and Up
-                super.sendEvent(downEvent)
-                super.sendEvent(event)
+            longPressTimer?.invalidate()
+
+            switch phase {
+            case .pressed:
+                onPressStateChanged?(false)
+                onTap?()
+            case .dragging:
+                onPressStateChanged?(false)
+                onDragEnded?()
+            case .longPressed:
+                onPressStateChanged?(false)
+            case .idle:
+                break
             }
-            
-            pendingMouseDownEvent = nil
-            isDragging = false
-            hasSentMouseDown = false
+
+            resetInput()
         } else {
             super.sendEvent(event)
         }
+    }
+
+    private func beginPress(at point: NSPoint) {
+        resetInput()
+        mouseDownPoint = point
+        phase = .pressed
+        onPressStateChanged?(true)
+
+        longPressTimer = Timer.scheduledTimer(withTimeInterval: longPressDuration, repeats: false) { [weak self] _ in
+            guard let self = self else { return }
+            guard self.phase == .pressed else { return }
+            self.phase = .longPressed
+            self.onPressStateChanged?(false)
+            self.onLongPress?()
+        }
+    }
+
+    private func resetInput() {
+        longPressTimer?.invalidate()
+        longPressTimer = nil
+        mouseDownPoint = nil
+        phase = .idle
     }
 }
 
@@ -100,7 +116,11 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     var settingsWindow: NSWindow?
     
     private let stateMachine: OrbStateMachine
+    private let interactionState = OrbInteractionState()
+    private let orbPanelSize = CGSize(width: 200.0 * (2.0 / 3.0), height: 170.0 * (2.0 / 3.0))
     private var cancellables = Set<AnyCancellable>()
+    private var isPresentingPreEndSummary = false
+    private var skipPostEndSummaryOnce = false
     
     init(stateMachine: OrbStateMachine) {
         self.stateMachine = stateMachine
@@ -126,15 +146,27 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     }
     
     func setupPanel() {
-        // Updated Window Logic: Borderless (Fix Transparency) + Large Size (Fix Clipping)
-        // Use DraggablePanel instead of standard NSPanel
+        // Borderless panel with deterministic input arbitration.
         let dragPanel = DraggablePanel(
-            contentRect: NSRect(x: 100, y: 100, width: 200, height: 170),
+            contentRect: NSRect(x: 100, y: 100, width: orbPanelSize.width, height: orbPanelSize.height),
             styleMask: [.borderless, .nonactivatingPanel], 
             backing: .buffered,
             defer: false
         )
         self.panel = dragPanel
+
+        dragPanel.onTap = { [weak self] in
+            self?.stateMachine.handleClick()
+        }
+        dragPanel.onLongPress = { [weak self] in
+            self?.requestSessionEndFromOrb()
+        }
+        dragPanel.onPressStateChanged = { [weak self] isPressed in
+            self?.interactionState.isPressed = isPressed
+        }
+        dragPanel.onDragBegan = { [weak self] in
+            self?.interactionState.isPressed = false
+        }
         
         panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
@@ -147,10 +179,10 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         // Disable standard moving to use our custom draggable logic
         panel.isMovableByWindowBackground = false
         
-        // Orb View with custom hosting view for right-click
-        // Pass a binding or callback for drag state if needed in View (optional if we consume the event)
-        // For now, DraggablePanel consuming MouseUp after drag is enough to stop TapGesture.
-        let contentView = OrbView(stateMachine: stateMachine)
+        let contentView = OrbView(
+            stateMachine: stateMachine,
+            interactionState: interactionState
+        )
             .edgesIgnoringSafeArea(.all)
         
         let hostingView = RightClickHostingView(rootView: contentView)
@@ -200,7 +232,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     // MARK: - Menu Actions
     
     @objc private func menuEndSession() {
-        stateMachine.endSession()
+        requestSessionEndFromExternal()
     }
     
     @objc private func menuShowDashboard() {
@@ -214,6 +246,50 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     @objc private func menuQuit() {
         NSApp.terminate(nil)
     }
+
+    func requestSessionEndFromOrb() {
+        requestSessionEnd(showOrbAfterCancel: true)
+    }
+
+    func requestSessionEndFromExternal() {
+        requestSessionEnd(showOrbAfterCancel: isOrbVisible)
+    }
+
+    private func requestSessionEnd(showOrbAfterCancel: Bool) {
+        guard let sessionId = stateMachine.activeSessionId else { return }
+        let sessionEvents = EventStore.shared.events(for: sessionId)
+        guard !sessionEvents.isEmpty else {
+            stateMachine.endSession()
+            return
+        }
+
+        let previewEnd = Date()
+        let stats = StatsCalculator.sessionPreviewStats(events: sessionEvents, previewEndTime: previewEnd)
+
+        // Keep the <60s threshold behavior: short sessions end immediately.
+        guard stats.total >= 60 else {
+            stateMachine.endSession()
+            return
+        }
+
+        isPresentingPreEndSummary = true
+        let startTime = sessionEvents.first(where: { $0.type == .sessionStart })?.timestamp ?? previewEnd
+        presentSummary(
+            stats: stats,
+            startTime: startTime,
+            endTime: previewEnd,
+            mergedCount: mergedSessionCount(for: sessionId),
+            showReflection: false,
+            onSetMood: { _ in },
+            onClose: {},
+            onConfirmEnd: { [weak self] in
+                self?.confirmEndSessionFromPreSummary()
+            },
+            onContinueSession: { [weak self] in
+                self?.cancelPreEndSummary(showOrbAfterCancel: showOrbAfterCancel)
+            }
+        )
+    }
     
     func setupObservers() {
         // Watch for State transitions to .idle (Session Ended)
@@ -223,6 +299,14 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
             .sink { [weak self] state in
                 if case .idle = state {
                     guard let self = self else { return }
+                    if self.skipPostEndSummaryOnce {
+                        self.skipPostEndSummaryOnce = false
+                        self.showStart()
+                        return
+                    }
+                    if self.isPresentingPreEndSummary {
+                        return
+                    }
                     // Only show summary if session was >= 60 seconds
                     if self.stateMachine.lastEndedSessionDuration >= 60 {
                         self.showSummary()
@@ -347,8 +431,9 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     func showOrb() {
         if let screen = NSScreen.main {
             let screenRect = screen.visibleFrame
-            let x = screenRect.maxX - 150
-            let y = screenRect.maxY - 150
+            let margin: CGFloat = 24
+            let x = screenRect.maxX - panel.frame.width - margin
+            let y = screenRect.maxY - panel.frame.height - margin
             panel.setFrameOrigin(NSPoint(x: x, y: y))
         }
         panel.orderFront(nil)
@@ -369,6 +454,26 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         } else {
             showOrb()
         }
+    }
+
+    private func revealOrbAtCurrentPosition() {
+        panel.orderFront(nil)
+        isOrbVisible = true
+    }
+
+    private func cancelPreEndSummary(showOrbAfterCancel: Bool) {
+        isPresentingPreEndSummary = false
+        summaryPanel?.orderOut(nil)
+        if showOrbAfterCancel {
+            revealOrbAtCurrentPosition()
+        }
+    }
+
+    private func confirmEndSessionFromPreSummary() {
+        isPresentingPreEndSummary = false
+        skipPostEndSummaryOnce = true
+        summaryPanel?.orderOut(nil)
+        stateMachine.endSession()
     }
     
     func showDashboard() {
@@ -431,52 +536,27 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     }
     
     func showSummary() {
-        hideOrb() 
-        
-        // 从最后一条 sessionEnd 事件获取 sessionId
+        isPresentingPreEndSummary = false
+
         guard let lastEndEvent = EventStore.shared.lastSessionEndEvent(),
               lastEndEvent.type == .sessionEnd else {
-            showStart()  // 没有结束事件，回到开始页
+            showStart()
             return
         }
+
         let sessionId = lastEndEvent.sessionId
         let sessionEvents = EventStore.shared.events(for: sessionId)
-        let stats: SessionStats = StatsCalculator.sessionStats(events: sessionEvents)
-        
+        let stats = StatsCalculator.sessionStats(events: sessionEvents)
         let parentSessionId = sessionEvents.first(where: { $0.type == .sessionStart })?.parentSessionId
         let reflectionSessionId = parentSessionId ?? sessionId
-        
-        // Calculate session time range
         let startTime = sessionEvents.first(where: { $0.type == .sessionStart })?.timestamp ?? Date()
         let endTime = lastEndEvent.timestamp
-        
-        // Calculate merged count: count how many sessions have this session as parent + self
-        let childSessions = EventStore.shared.events.filter { $0.parentSessionId == sessionId }
-        let uniqueChildSessionIds = Set(childSessions.map { $0.sessionId })
-        let mergedCount = uniqueChildSessionIds.isEmpty ? nil : (uniqueChildSessionIds.count + 1)
-        
-        if summaryPanel == nil {
-            summaryPanel = NSPanel(
-                contentRect: NSRect(x: 0, y: 0, width: 340, height: 420),
-                styleMask: [.borderless, .nonactivatingPanel],
-                backing: .buffered,
-                defer: false
-            )
-            summaryPanel?.level = .floating
-            summaryPanel?.backgroundColor = .clear
-            summaryPanel?.isOpaque = false
-            summaryPanel?.hasShadow = false
-        }
-        
-        let summaryView = SessionSummaryView(
-            sessionDuration: stats.total,
-            greenDuration: stats.green,
-            redDuration: stats.red,
-            segments: stats.segments,
-            avgGreenStreak: stats.avgGreenStreak,
+
+        presentSummary(
+            stats: stats,
             startTime: startTime,
             endTime: endTime,
-            mergedSessionCount: mergedCount,
+            mergedCount: mergedSessionCount(for: sessionId),
             showReflection: AppSettings.shared.enableSessionReflection,
             onSetMood: { [weak self] mood in
                 if let mood {
@@ -494,24 +574,76 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
             onClose: { [weak self] in
                 self?.summaryPanel?.orderOut(nil)
                 self?.showStart()
-            }
+            },
+            onConfirmEnd: nil,
+            onContinueSession: nil
         )
-        
+    }
+
+    private func mergedSessionCount(for sessionId: UUID) -> Int? {
+        let childSessions = EventStore.shared.events.filter { $0.parentSessionId == sessionId }
+        let uniqueChildSessionIds = Set(childSessions.map { $0.sessionId })
+        return uniqueChildSessionIds.isEmpty ? nil : (uniqueChildSessionIds.count + 1)
+    }
+
+    private func prepareSummaryPanelIfNeeded() {
+        if summaryPanel == nil {
+            summaryPanel = NSPanel(
+                contentRect: NSRect(x: 0, y: 0, width: 340, height: 420),
+                styleMask: [.borderless, .nonactivatingPanel],
+                backing: .buffered,
+                defer: false
+            )
+            summaryPanel?.level = .floating
+            summaryPanel?.backgroundColor = .clear
+            summaryPanel?.isOpaque = false
+            summaryPanel?.hasShadow = false
+        }
+    }
+
+    private func presentSummary(
+        stats: SessionStats,
+        startTime: Date,
+        endTime: Date,
+        mergedCount: Int?,
+        showReflection: Bool,
+        onSetMood: @escaping (SessionMood?) -> Void,
+        onClose: @escaping () -> Void,
+        onConfirmEnd: (() -> Void)?,
+        onContinueSession: (() -> Void)?
+    ) {
+        hideOrb()
+        prepareSummaryPanelIfNeeded()
+
+        let summaryView = SessionSummaryView(
+            sessionDuration: stats.total,
+            greenDuration: stats.green,
+            redDuration: stats.red,
+            segments: stats.segments,
+            avgGreenStreak: stats.avgGreenStreak,
+            startTime: startTime,
+            endTime: endTime,
+            mergedSessionCount: mergedCount,
+            showReflection: showReflection,
+            onSetMood: onSetMood,
+            onClose: onClose,
+            onConfirmEnd: onConfirmEnd,
+            onContinueSession: onContinueSession
+        )
+
         summaryPanel?.contentView = NSHostingView(rootView: summaryView)
-        
-        // Position exactly where the orb was
+
         if let orbFrame = panel.frame as CGRect? {
             let centerX = orbFrame.midX
             let centerY = orbFrame.midY
             let summarySize = summaryPanel?.frame.size ?? CGSize(width: 340, height: 420)
-            
             let summaryOrigin = CGPoint(
                 x: centerX - summarySize.width / 2,
                 y: centerY - summarySize.height / 2
             )
             summaryPanel?.setFrameOrigin(summaryOrigin)
         }
-        
+
         summaryPanel?.orderFront(nil)
     }
 }

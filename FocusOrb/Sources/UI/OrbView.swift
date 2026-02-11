@@ -2,16 +2,15 @@ import SwiftUI
 
 struct OrbView: View {
     @ObservedObject var stateMachine: OrbStateMachine
-
-    @State private var isLongPressing = false
+    @ObservedObject var interactionState: OrbInteractionState
     @State private var glowPhase: CGFloat = 0
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
 
-    let mintColor = Color(red: 0.0, green: 1.0, blue: 0.6)
     private let orbSize = CGSize(width: 200, height: 170)
     private let cloudSize = CGSize(width: 150, height: 96)
+    private let viewScale: CGFloat = 2.0 / 3.0
 
     var body: some View {
         ZStack {
@@ -19,17 +18,10 @@ struct OrbView: View {
             cloudBase
             cloudGlassHighlight
 
-            if shouldShowFocusFace {
-                focusFace
+            if shouldShowFace {
+                faceContent
                     .frame(width: scaledCloudSize.width, height: scaledCloudSize.height, alignment: .center)
-                    .offset(y: -18)
-                    .allowsHitTesting(false)
-            }
-
-            if shouldShowRestFace {
-                restFace
-                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height, alignment: .center)
-                    .offset(y: -20)
+                    .offset(y: faceYOffset)
                     .allowsHitTesting(false)
             }
 
@@ -71,36 +63,13 @@ struct OrbView: View {
                     .allowsHitTesting(false)
             }
 
-            if shouldShowSleepZ {
-                sleepZOverlay
-                    .allowsHitTesting(false)
-            }
         }
         .frame(width: orbSize.width, height: orbSize.height)
         .background(Color.clear)
         .contentShape(Rectangle())
-        .scaleEffect(isLongPressing ? 0.94 : 1.0)
-        .animation(.easeInOut(duration: 0.2), value: isLongPressing)
-        .gesture(
-            LongPressGesture(minimumDuration: 0.8)
-                .onChanged { _ in
-                    isLongPressing = true
-                }
-                .onEnded { _ in
-                    isLongPressing = false
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
-                        stateMachine.endSession()
-                    }
-                }
-        )
-        .simultaneousGesture(
-            TapGesture()
-                .onEnded {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
-                        stateMachine.handleClick()
-                    }
-                }
-        )
+        .scaleEffect((interactionState.isPressed ? 0.94 : 1.0) * viewScale)
+        .animation(.easeInOut(duration: 0.2), value: interactionState.isPressed)
+        .frame(width: orbSize.width * viewScale, height: orbSize.height * viewScale)
         .onAppear {
             updateGlowAnimation(animate: shouldAnimateGlow)
         }
@@ -131,6 +100,7 @@ struct OrbView: View {
             }
         }
     }
+
 }
 
 private extension OrbView {
@@ -140,6 +110,24 @@ private extension OrbView {
         case focusIdleGradient
         case redPending
         case `break`
+    }
+
+    enum FaceStyle {
+        case smileEyes
+        case slitEyes
+        case none
+    }
+
+    struct ModeVisualToken {
+        let hueColor: Color
+        let textColor: Color
+        let iconName: String
+        let iconColor: Color
+        let faceStyle: FaceStyle
+        let glowMin: Double
+        let glowMax: Double
+        let glowRadiusMin: Double
+        let glowRadiusMax: Double
     }
 
     var visualState: VisualState {
@@ -155,126 +143,170 @@ private extension OrbView {
         }
     }
 
-    var badgeSymbolName: String? {
+    var focusToken: ModeVisualToken {
+        let isDark = colorScheme == .dark
+        return ModeVisualToken(
+            hueColor: isDark
+                ? Color(red: 52.0 / 255.0, green: 211.0 / 255.0, blue: 153.0 / 255.0)
+                : Color(red: 16.0 / 255.0, green: 185.0 / 255.0, blue: 129.0 / 255.0),
+            textColor: isDark
+                ? Color.white.opacity(0.94)
+                : Color(red: 0.10, green: 0.17, blue: 0.32),
+            iconName: "leaf.fill",
+            iconColor: Color(red: 0.07, green: 0.76, blue: 0.52),
+            faceStyle: .smileEyes,
+            glowMin: isDark ? 0.28 : 0.36,
+            glowMax: isDark ? 0.58 : 0.82,
+            glowRadiusMin: 14,
+            glowRadiusMax: 30
+        )
+    }
+
+    var breakToken: ModeVisualToken {
+        let isDark = colorScheme == .dark
+        return ModeVisualToken(
+            hueColor: isDark
+                ? Color(red: 251.0 / 255.0, green: 191.0 / 255.0, blue: 36.0 / 255.0)
+                : AppTheme.Colors.warmOrange,
+            textColor: Color.white.opacity(0.96),
+            iconName: "cup.and.saucer.fill",
+            iconColor: isDark
+                ? Color(red: 253.0 / 255.0, green: 230.0 / 255.0, blue: 138.0 / 255.0)
+                : Color(red: 146.0 / 255.0, green: 64.0 / 255.0, blue: 14.0 / 255.0),
+            faceStyle: .slitEyes,
+            glowMin: isDark ? 0.34 : 0.40,
+            glowMax: isDark ? 0.70 : 0.88,
+            glowRadiusMin: 16,
+            glowRadiusMax: 34
+        )
+    }
+
+    var sleepToken: ModeVisualToken {
+        let isDark = colorScheme == .dark
+        return ModeVisualToken(
+            hueColor: isDark
+                ? Color(red: 107.0 / 255.0, green: 114.0 / 255.0, blue: 128.0 / 255.0)
+                : Color(red: 148.0 / 255.0, green: 163.0 / 255.0, blue: 184.0 / 255.0),
+            textColor: isDark
+                ? Color.white.opacity(0.94)
+                : Color(red: 0.10, green: 0.17, blue: 0.32),
+            iconName: "bed.double.fill",
+            iconColor: isDark
+                ? Color.white.opacity(0.56)
+                : Color(red: 100.0 / 255.0, green: 116.0 / 255.0, blue: 139.0 / 255.0).opacity(0.72),
+            faceStyle: .slitEyes,
+            glowMin: isDark ? 0.14 : 0.18,
+            glowMax: isDark ? 0.34 : 0.42,
+            glowRadiusMin: 10,
+            glowRadiusMax: 22
+        )
+    }
+
+    var redPendingToken: ModeVisualToken {
+        ModeVisualToken(
+            hueColor: Color.orange,
+            textColor: Color(red: 0.96, green: 0.72, blue: 0.46),
+            iconName: "hourglass",
+            iconColor: Color(red: 0.95, green: 0.62, blue: 0.24),
+            faceStyle: .none,
+            glowMin: 0.22,
+            glowMax: 0.52,
+            glowRadiusMin: 10,
+            glowRadiusMax: 20
+        )
+    }
+
+    var activeToken: ModeVisualToken? {
         switch visualState {
-        case .idle:
-            nil
         case .focus, .focusIdleGradient:
-            "leaf.fill"
-        case .redPending:
-            "hourglass"
+            focusToken
         case .break:
-            "cup.and.saucer.fill"
+            breakToken
+        case .idle:
+            sleepToken
+        case .redPending:
+            redPendingToken
         }
+    }
+
+    var badgeSymbolName: String? {
+        activeToken?.iconName
     }
 
     var badgeColor: Color {
-        switch visualState {
-        case .focus, .focusIdleGradient:
-            Color(red: 0.07, green: 0.76, blue: 0.52)
-        case .redPending:
-            Color(red: 0.95, green: 0.62, blue: 0.24)
-        case .break:
-            Color(red: 245.0 / 255.0, green: 158.0 / 255.0, blue: 11.0 / 255.0)
-        case .idle:
-            Color.gray
-        }
+        activeToken?.iconColor ?? Color.gray
     }
 
     var badgeSize: CGFloat {
-        switch visualState {
-        case .focus, .focusIdleGradient:
-            16
-        case .redPending:
-            14
-        case .break:
-            15
-        default:
-            16
-        }
+        visualState == .redPending ? 14 : 16
     }
 
     var badgeOpacity: Double {
-        switch visualState {
-        case .focus:
-            0.98
-        case .focusIdleGradient:
-            0.9
-        case .redPending:
-            0.9
-        default:
-            0.92
-        }
+        visualState == .redPending ? 0.90 : 0.96
     }
 
     var badgeTrailingPadding: CGFloat {
-        switch visualState {
-        case .focus, .focusIdleGradient:
-            8
-        case .redPending:
-            8
-        case .break:
-            7
-        case .idle:
-            8
-        }
+        scaledCloudSize.width * 0.053
     }
 
     var badgeBottomPadding: CGFloat {
-        switch visualState {
-        case .focus, .focusIdleGradient:
-            7
-        case .redPending:
-            7
-        case .break:
-            8
-        case .idle:
-            7
-        }
+        scaledCloudSize.height * 0.073
     }
 
-    var shouldShowFocusFace: Bool {
-        visualState == .focus || visualState == .focusIdleGradient
-    }
-
-    var shouldShowRestFace: Bool {
-        visualState == .break
+    var shouldShowFace: Bool {
+        guard let token = activeToken else { return false }
+        return token.faceStyle != .none
     }
 
     var faceFeatureColor: Color {
         colorScheme == .dark ? Color.white.opacity(0.55) : Color.black.opacity(0.34)
     }
 
-    var focusFace: some View {
-        VStack(spacing: 2) {
-            HStack(spacing: 10) {
-                Circle()
-                    .fill(faceFeatureColor)
-                    .frame(width: 4, height: 4)
-
-                Circle()
-                    .fill(faceFeatureColor)
-                    .frame(width: 4, height: 4)
-            }
-
-            SmileShape()
-                .stroke(
-                    faceFeatureColor.opacity(colorScheme == .dark ? 0.92 : 0.75),
-                    style: StrokeStyle(lineWidth: 1.7, lineCap: .round, lineJoin: .round)
-                )
-                .frame(width: 12, height: 6)
+    var faceYOffset: CGFloat {
+        switch activeToken?.faceStyle {
+        case .smileEyes:
+            -scaledCloudSize.height * 0.19
+        case .slitEyes:
+            -scaledCloudSize.height * 0.17
+        default:
+            0
         }
     }
 
-    var restFace: some View {
-        HStack(spacing: 10) {
-            RoundedRectangle(cornerRadius: 2)
-                .fill(Color(red: 71.0 / 255.0, green: 85.0 / 255.0, blue: 105.0 / 255.0).opacity(0.60))
-                .frame(width: 14, height: 2.5)
+    @ViewBuilder
+    var faceContent: some View {
+        switch activeToken?.faceStyle {
+        case .smileEyes:
+            VStack(spacing: 2) {
+                HStack(spacing: 10) {
+                    Circle()
+                        .fill(faceFeatureColor)
+                        .frame(width: 4, height: 4)
 
-            RoundedRectangle(cornerRadius: 2)
-                .fill(Color(red: 71.0 / 255.0, green: 85.0 / 255.0, blue: 105.0 / 255.0).opacity(0.60))
-                .frame(width: 14, height: 2.5)
+                    Circle()
+                        .fill(faceFeatureColor)
+                        .frame(width: 4, height: 4)
+                }
+
+                SmileShape()
+                    .stroke(
+                        faceFeatureColor.opacity(colorScheme == .dark ? 0.92 : 0.75),
+                        style: StrokeStyle(lineWidth: 1.7, lineCap: .round, lineJoin: .round)
+                    )
+                    .frame(width: 12, height: 6)
+            }
+        case .slitEyes:
+            HStack(spacing: 10) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color(red: 71.0 / 255.0, green: 85.0 / 255.0, blue: 105.0 / 255.0).opacity(0.60))
+                    .frame(width: 14, height: 2.5)
+
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color(red: 71.0 / 255.0, green: 85.0 / 255.0, blue: 105.0 / 255.0).opacity(0.60))
+                    .frame(width: 14, height: 2.5)
+            }
+        default:
+            EmptyView()
         }
     }
 
@@ -291,7 +323,6 @@ private extension OrbView {
 
     var cloudBase: some View {
         ZStack {
-            // Use union silhouette for a single material fill so overlaps do not form seams.
             CloudSilhouetteShape()
                 .fill(.ultraThinMaterial)
                 .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
@@ -301,8 +332,8 @@ private extension OrbView {
                 .fill(
                     LinearGradient(
                         colors: [
-                            cloudGlassTopColor.opacity(cloudBaseOpacity),
-                            cloudGlassBottomColor.opacity(cloudBaseOpacity)
+                            cloudGlassTopColor,
+                            cloudGlassBottomColor
                         ],
                         startPoint: .top,
                         endPoint: .bottom
@@ -324,26 +355,6 @@ private extension OrbView {
                 )
                 .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
                 .blendMode(.overlay)
-
-            if visualState == .break {
-                CloudSilhouetteShape()
-                    .fill(
-                        RadialGradient(
-                            colors: [
-                                Color(red: 251.0 / 255.0, green: 191.0 / 255.0, blue: 36.0 / 255.0).opacity(0.30),
-                                Color(red: 251.0 / 255.0, green: 191.0 / 255.0, blue: 36.0 / 255.0).opacity(0.16),
-                                Color.clear
-                            ],
-                            center: .center,
-                            startRadius: 2,
-                            endRadius: scaledCloudSize.width * 0.62
-                        )
-                    )
-                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                    .blendMode(.softLight)
-            }
-
-            // No geometry stroke here: avoid exposing internal construction outlines.
         }
         .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
         .compositingGroup()
@@ -352,80 +363,83 @@ private extension OrbView {
     }
 
     var cloudGlassTopColor: Color {
-        switch colorScheme {
-        case .dark:
-            return Color(red: 0.20, green: 0.28, blue: 0.35)
-        default:
-            if visualState == .break {
-                return Color.white
-            }
-            return Color(red: 0.98, green: 1.00, blue: 0.99)
+        switch visualState {
+        case .focus, .focusIdleGradient:
+            return colorScheme == .dark
+                ? Color(red: 0.20, green: 0.28, blue: 0.35)
+                : Color(red: 0.98, green: 1.00, blue: 0.99)
+        case .break:
+            return colorScheme == .dark
+                ? Color(red: 0.34, green: 0.24, blue: 0.12)
+                : Color(red: 1.00, green: 0.97, blue: 0.90)
+        case .idle:
+            return colorScheme == .dark
+                ? Color(red: 0.19, green: 0.21, blue: 0.25)
+                : Color(red: 0.96, green: 0.97, blue: 0.98)
+        case .redPending:
+            return colorScheme == .dark
+                ? Color(red: 0.30, green: 0.23, blue: 0.16)
+                : Color(red: 1.00, green: 0.96, blue: 0.90)
         }
     }
 
     var cloudGlassBottomColor: Color {
-        switch colorScheme {
-        case .dark:
-            return Color(red: 0.14, green: 0.20, blue: 0.26)
-        default:
-            if visualState == .break {
-                return Color(red: 0.98, green: 0.99, blue: 0.98)
-            }
-            return Color(red: 0.93, green: 0.99, blue: 0.97)
+        switch visualState {
+        case .focus, .focusIdleGradient:
+            return colorScheme == .dark
+                ? Color(red: 0.14, green: 0.20, blue: 0.26)
+                : Color(red: 0.94, green: 0.98, blue: 0.97)
+        case .break:
+            return colorScheme == .dark
+                ? Color(red: 0.24, green: 0.16, blue: 0.08)
+                : Color(red: 1.00, green: 0.90, blue: 0.74)
+        case .idle:
+            return colorScheme == .dark
+                ? Color(red: 0.13, green: 0.15, blue: 0.18)
+                : Color(red: 0.89, green: 0.92, blue: 0.95)
+        case .redPending:
+            return colorScheme == .dark
+                ? Color(red: 0.22, green: 0.16, blue: 0.10)
+                : Color(red: 0.99, green: 0.88, blue: 0.72)
         }
     }
 
     var cloudTintColor: Color {
         switch visualState {
-        case .focus, .focusIdleGradient:
-            return mintColor
         case .redPending:
-            return Color.orange
-        case .break:
-            return Color(red: 251.0 / 255.0, green: 191.0 / 255.0, blue: 36.0 / 255.0)
-        case .idle:
-            return Color.gray
+            redPendingToken.hueColor
+        default:
+            activeToken?.hueColor ?? Color.gray
         }
     }
 
     var cloudTintTopOpacity: Double {
         switch visualState {
-        case .focus:
-            0.12
         case .focusIdleGradient:
-            0.14
+            0.17
+        case .focus:
+            0.13
+        case .break:
+            0.38
+        case .idle:
+            0.16
         case .redPending:
             0.16
-        case .break:
-            0.26
-        case .idle:
-            0.08
         }
     }
 
     var cloudTintMidOpacity: Double {
         switch visualState {
-        case .focus:
-            0.05
         case .focusIdleGradient:
-            0.07
+            0.10
+        case .focus:
+            0.06
+        case .break:
+            0.24
+        case .idle:
+            0.10
         case .redPending:
             0.08
-        case .break:
-            0.16
-        case .idle:
-            0.03
-        }
-    }
-
-    var cloudBaseOpacity: Double {
-        switch visualState {
-        case .focusIdleGradient:
-            1.0
-        case .redPending:
-            0.98
-        default:
-            1.0
         }
     }
 
@@ -434,21 +448,21 @@ private extension OrbView {
         let edgeHighlightOpacity: Double
 
         switch visualState {
-        case .focus:
-            topHighlightOpacity = 0.18
-            edgeHighlightOpacity = 0.07
         case .focusIdleGradient:
             topHighlightOpacity = 0.22
             edgeHighlightOpacity = 0.09
+        case .focus:
+            topHighlightOpacity = 0.20
+            edgeHighlightOpacity = 0.08
+        case .break:
+            topHighlightOpacity = 0.14
+            edgeHighlightOpacity = 0.05
+        case .idle:
+            topHighlightOpacity = 0.17
+            edgeHighlightOpacity = 0.07
         case .redPending:
             topHighlightOpacity = 0.12
             edgeHighlightOpacity = 0.06
-        case .break:
-            topHighlightOpacity = 0.16
-            edgeHighlightOpacity = 0.08
-        case .idle:
-            topHighlightOpacity = 0
-            edgeHighlightOpacity = 0
         }
 
         return ZStack {
@@ -488,92 +502,36 @@ private extension OrbView {
 
     @ViewBuilder
     var cloudGlow: some View {
-        let scale = scaledCloudSize.width / 280.0
-        let progress = Double(max(0, min(1, glowPhase)))
-
-        if visualState == .focus || visualState == .focusIdleGradient {
-            // Match HTML glow rhythm:
-            // light: rgba(16,185,129,0.3~0.6), radius 15~35
-            // dark:  rgba(52,211,153,0.15~0.35), radius 15~35
-            let baseColor = colorScheme == .dark
-                ? Color(red: 52.0 / 255.0, green: 211.0 / 255.0, blue: 153.0 / 255.0)
-                : Color(red: 16.0 / 255.0, green: 185.0 / 255.0, blue: 129.0 / 255.0)
-            // Increase pulse intensity so it remains visible on bright backgrounds.
-            let minOpacity = colorScheme == .dark ? 0.24 : 0.48
-            let maxOpacity = colorScheme == .dark ? 0.52 : 0.92
-            let pulseOpacity = shouldAnimateGlow ? (minOpacity + ((maxOpacity - minOpacity) * progress)) : minOpacity
-            let pulseRadius = shouldAnimateGlow ? ((22.0 + ((48.0 - 22.0) * progress)) * scale) : 22.0 * scale
+        if let token = activeToken {
+            let progress = Double(max(0, min(1, glowPhase)))
+            let opacity = shouldAnimateGlow ? lerp(token.glowMin, token.glowMax, progress) : token.glowMin
+            let radius = (shouldAnimateGlow ? lerp(token.glowRadiusMin, token.glowRadiusMax, progress) : token.glowRadiusMin) * Double(glowScale)
+            let innerOpacity = 0.08 + (opacity * 0.22)
+            let edgeSoftness = 0.7 + (progress * 0.8)
 
             ZStack {
                 CloudSilhouetteShape()
-                    .fill(Color.white.opacity(0.012))
+                    .fill(token.hueColor.opacity(innerOpacity))
                     .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                    .shadow(color: baseColor.opacity(pulseOpacity), radius: pulseRadius, x: 0, y: 0)
-                    .shadow(color: baseColor.opacity(pulseOpacity * 0.62), radius: pulseRadius * 1.45, x: 0, y: 0)
-                    .shadow(color: baseColor.opacity(pulseOpacity * 0.30), radius: pulseRadius * 2.10, x: 0, y: 0)
-                    .blendMode(.plusLighter)
-            }
-            .frame(width: orbSize.width, height: orbSize.height)
-            .allowsHitTesting(false)
-        } else if visualState == .break {
-            let warm = Color(red: 251.0 / 255.0, green: 191.0 / 255.0, blue: 36.0 / 255.0)
-            let phase = shouldAnimateGlow ? progress : 0
-            let innerFill = colorScheme == .dark ? (0.24 + (0.28 * phase)) : (0.26 + (0.40 * phase))
-            let ringOpacity = colorScheme == .dark ? (0.34 + (0.30 * phase)) : (0.36 + (0.44 * phase))
-            let glowOpacity = colorScheme == .dark ? (0.34 + (0.26 * phase)) : (0.40 + (0.36 * phase))
-            let auraScale = 1.015 + (0.055 * phase)
-            let primaryRadius = (16.0 + (14.0 * phase)) * scale
-            let secondaryRadius = (10.0 + (8.0 * phase)) * scale
-
-            ZStack {
-                CloudSilhouetteShape()
-                    .fill(warm.opacity(innerFill))
-                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                    .scaleEffect(auraScale)
+                    .blur(radius: edgeSoftness)
+                    .mask(cloudMask)
                     .blendMode(.screen)
 
                 CloudSilhouetteShape()
-                    .fill(warm.opacity(ringOpacity))
+                    .fill(Color.white.opacity(0.012))
                     .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                    .blur(radius: 0.9 + (1.1 * phase))
-                    .mask(
-                        CloudSilhouetteShape()
-                            .stroke(lineWidth: 1.2 + (0.9 * phase))
-                            .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                    )
+                    .shadow(color: token.hueColor.opacity(opacity), radius: radius, x: 0, y: 0)
+                    .shadow(color: token.hueColor.opacity(opacity * 0.58), radius: radius * 1.30, x: 0, y: 0)
+                    .shadow(color: token.hueColor.opacity(opacity * 0.24), radius: radius * 1.75, x: 0, y: 0)
                     .blendMode(.plusLighter)
-
-                CloudSilhouetteShape()
-                    .fill(Color.white.opacity(0.018))
-                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                    .shadow(color: warm.opacity(glowOpacity), radius: primaryRadius, x: 0, y: 4 * scale)
-                    .shadow(color: warm.opacity(glowOpacity * 0.66), radius: secondaryRadius, x: 0, y: 2 * scale)
-            }
-            .frame(width: orbSize.width, height: orbSize.height)
-            .allowsHitTesting(false)
-        } else {
-            let base = staticGlowOpacity
-            let innerOpacity = shouldAnimateGlow ? (0.12 + (0.06 * progress)) : base.inner
-            let outerOpacity = shouldAnimateGlow ? (0.05 + (0.05 * progress)) : base.outer
-
-            ZStack {
-                Rectangle()
-                    .fill(glowColor)
-                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                    .mask(cloudMask)
-                    .blur(radius: 10)
-                    .opacity(innerOpacity)
-
-                Rectangle()
-                    .fill(glowColor)
-                    .frame(width: scaledCloudSize.width, height: scaledCloudSize.height)
-                    .mask(cloudMask)
-                    .blur(radius: 18)
-                    .opacity(outerOpacity)
             }
             .frame(width: orbSize.width, height: orbSize.height)
             .allowsHitTesting(false)
         }
+    }
+
+    func lerp(_ minValue: Double, _ maxValue: Double, _ progress: Double) -> Double {
+        minValue + ((maxValue - minValue) * progress)
     }
 
     var shouldShowTimeText: Bool {
@@ -583,32 +541,6 @@ private extension OrbView {
         case .focus, .focusIdleGradient, .break, .redPending:
             true
         }
-    }
-
-    var shouldShowSleepZ: Bool {
-        visualState == .idle
-    }
-
-    var sleepZOverlay: some View {
-        ZStack {
-            Text("Z")
-                .font(.system(size: 22, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.white.opacity(0.84))
-                .offset(x: 12, y: -10)
-
-            Text("z")
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
-                .foregroundStyle(Color.white.opacity(0.70))
-                .offset(x: 1, y: -2)
-
-            Text("z")
-                .font(.system(size: 14, weight: .medium, design: .rounded))
-                .foregroundStyle(Color.white.opacity(0.52))
-                .offset(x: -10, y: 4)
-        }
-        .frame(width: scaledCloudSize.width, height: scaledCloudSize.height, alignment: .topTrailing)
-        .padding(.trailing, 6)
-        .padding(.top, 2)
     }
 
     var timeText: String {
@@ -623,80 +555,43 @@ private extension OrbView {
     }
 
     var timeFont: Font {
-        switch stateMachine.currentState {
+        switch visualState {
         case .redPending:
             .system(size: 32, weight: .bold, design: .rounded)
-        case .green, .red:
-            .system(
-                size: visualState == .break ? 34 : (visualState == .focus || visualState == .focusIdleGradient) ? 34 : 34,
-                weight: .bold,
-                design: .rounded
-            )
+        case .focus, .focusIdleGradient, .break:
+            .system(size: 34, weight: .bold, design: .rounded)
         case .idle:
             .system(size: 20, weight: .bold, design: .rounded)
         }
     }
 
+    @ViewBuilder
     var timeContent: some View {
-        Group {
-            if visualState == .break {
-                Text(timeText)
-                    .font(timeFont)
-                    .monospacedDigit()
-                    .tracking(-0.4)
-                    .foregroundStyle(Color(red: 51.0 / 255.0, green: 65.0 / 255.0, blue: 85.0 / 255.0))
-            } else if visualState == .focus || visualState == .focusIdleGradient {
-                if shouldUseMonospacedDigits {
-                    Text(timeText)
-                        .font(timeFont)
-                        .monospacedDigit()
-                        .tracking(-0.4)
-                        .foregroundStyle(
-                            colorScheme == .dark
-                                ? Color.white.opacity(0.94)
-                                : Color(red: 0.10, green: 0.17, blue: 0.32)
-                        )
-                } else {
-                    Text(timeText)
-                        .font(timeFont)
-                        .tracking(-0.4)
-                        .foregroundStyle(
-                            colorScheme == .dark
-                                ? Color.white.opacity(0.94)
-                                : Color(red: 0.10, green: 0.17, blue: 0.32)
-                        )
-                }
-            } else if visualState == .redPending {
-                SoftTimerText(
-                    text: timeText,
-                    font: timeFont,
-                    topColor: Color(red: 0.98, green: 0.76, blue: 0.52),
-                    bottomColor: Color(red: 0.93, green: 0.56, blue: 0.22),
-                    shadowColor: Color.black.opacity(0.24),
-                    monospacedDigits: shouldUseMonospacedDigits
-                )
-            } else {
-                StrokedText(
-                    text: timeText,
-                    font: timeFont,
-                    strokeColor: Color.black.opacity(0.38),
-                    strokeWidth: 1.4,
-                    fillColor: Color.white.opacity(0.95),
-                    monospacedDigits: shouldUseMonospacedDigits
-                )
-            }
+        if visualState == .redPending {
+            SoftTimerText(
+                text: timeText,
+                font: timeFont,
+                topColor: Color(red: 0.98, green: 0.76, blue: 0.52),
+                bottomColor: Color(red: 0.93, green: 0.56, blue: 0.22),
+                shadowColor: Color.black.opacity(0.24),
+                monospacedDigits: true
+            )
+        } else if let token = activeToken {
+            Text(timeText)
+                .font(timeFont)
+                .monospacedDigit()
+                .tracking(-0.4)
+                .foregroundStyle(token.textColor)
         }
     }
 
     var timeYOffset: CGFloat {
         switch visualState {
-        case .focus, .focusIdleGradient:
-            14
-        case .break:
-            12
         case .redPending:
-            8
-        default:
+            scaledCloudSize.height * 0.085
+        case .focus, .focusIdleGradient, .break:
+            scaledCloudSize.height * 0.145
+        case .idle:
             2
         }
     }
@@ -714,13 +609,8 @@ private extension OrbView {
         CGSize(width: cloudSize.width * cloudScale, height: cloudSize.height * cloudScale)
     }
 
-    var shouldUseMonospacedDigits: Bool {
-        switch stateMachine.currentState {
-        case .idle:
-            false
-        case .green, .red, .redPending:
-            true
-        }
+    var glowScale: CGFloat {
+        scaledCloudSize.width / cloudSize.width
     }
 
     func formatTime(_ interval: TimeInterval) -> String {
@@ -729,45 +619,12 @@ private extension OrbView {
         return String(format: "%02d:%02d", minutes, seconds)
     }
 
-    var warmOrange: Color {
-        Color(red: 0.98, green: 0.67, blue: 0.32)
-    }
-
-    var glowColor: Color {
-        switch visualState {
-        case .focus, .focusIdleGradient:
-            mintColor
-        case .break, .redPending:
-            warmOrange
-        case .idle:
-            Color.clear
-        }
-    }
-
     var shouldAnimateGlow: Bool {
         switch visualState {
-        case .focus, .focusIdleGradient, .redPending, .break:
+        case .focus, .focusIdleGradient, .redPending, .break, .idle:
             true
-        default:
-            false
         }
     }
-
-    var staticGlowOpacity: (inner: Double, outer: Double) {
-        switch visualState {
-        case .idle:
-            (0, 0)
-        case .break:
-            (0.12, 0.07)
-        case .focus:
-            (0.11, 0.05)
-        case .focusIdleGradient:
-            (0.13, 0.06)
-        case .redPending:
-            (0.12, 0.07)
-        }
-    }
-
 }
 
 private struct CloudSilhouetteShape: Shape {
@@ -874,59 +731,6 @@ private struct SoftTimerText: View {
                 .font(font)
                 .foregroundStyle(gradient)
         }
-    }
-}
-
-private struct StrokedText: View {
-    let text: String
-    let font: Font
-    let strokeColor: Color
-    let strokeWidth: CGFloat
-    let fillColor: Color
-    let monospacedDigits: Bool
-
-    var body: some View {
-        ZStack {
-            ForEach(offsets.indices, id: \.self) { index in
-                let offset = offsets[index]
-                if monospacedDigits {
-                    Text(text)
-                        .font(font)
-                        .monospacedDigit()
-                        .foregroundColor(strokeColor)
-                        .offset(x: offset.x, y: offset.y)
-                } else {
-                    Text(text)
-                        .font(font)
-                        .foregroundColor(strokeColor)
-                        .offset(x: offset.x, y: offset.y)
-                }
-            }
-            if monospacedDigits {
-                Text(text)
-                    .font(font)
-                    .monospacedDigit()
-                    .foregroundColor(fillColor)
-            } else {
-                Text(text)
-                    .font(font)
-                    .foregroundColor(fillColor)
-            }
-        }
-    }
-
-    private var offsets: [CGPoint] {
-        let w = strokeWidth
-        return [
-            CGPoint(x: -w, y: 0),
-            CGPoint(x: w, y: 0),
-            CGPoint(x: 0, y: -w),
-            CGPoint(x: 0, y: w),
-            CGPoint(x: -w, y: -w),
-            CGPoint(x: w, y: -w),
-            CGPoint(x: -w, y: w),
-            CGPoint(x: w, y: w)
-        ]
     }
 }
 

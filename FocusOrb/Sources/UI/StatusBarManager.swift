@@ -148,7 +148,7 @@ class StatusBarManager {
     }
     
     @objc private func endSessionAction() {
-        stateMachine?.endSession()
+        windowManager?.requestSessionEndFromExternal()
     }
     
     @objc private func dashboardAction() {
