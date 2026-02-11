@@ -4,49 +4,39 @@ struct StartView: View {
     var onStart: () -> Void
     
     var body: some View {
-        VStack(spacing: 30) {
-            // Logo (Static Orb)
-            ZStack {
-                Circle().fill(Color.mint.opacity(0.3)).frame(width: 60, height: 60).blur(radius: 10)
-                Circle().fill(Color.mint.opacity(0.8)).frame(width: 40, height: 40)
-            }
-            .shadow(color: .mint, radius: 20)
-            
-            VStack(spacing: 8) {
-                Text("FocusOrb")
-                    .font(.system(.largeTitle, design: .rounded))
-                    .fontWeight(.bold)
-                Text("Find your flow.")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                
-                // Interaction hints
-                VStack(spacing: 4) {
-                    Text("点击切换状态 · 长按结束")
-                        .font(.caption2)
-                        .foregroundColor(.secondary.opacity(0.6))
-                    Text("绿色→橙色 3秒内可回滚")
-                        .font(.caption2)
-                        .foregroundColor(.secondary.opacity(0.6))
+        VStack(spacing: 20) {
+            StickerHeader(
+                imageName: "focus",
+                title: "FocusOrb",
+                subtitle: "Find your flow.",
+                style: .centered,
+                iconSize: 48
+            )
+
+            GlassCard(padding: 12) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("点击切换状态", systemImage: "hand.tap")
+                        .font(AppTheme.Typography.body)
+                    Label("长按结束本次", systemImage: "hand.press")
+                        .font(AppTheme.Typography.body)
+                    Label("绿色→橙色 3秒内可回滚", systemImage: "arrow.uturn.backward")
+                        .font(AppTheme.Typography.caption)
+                        .foregroundColor(AppTheme.Colors.textSecondary)
                 }
-                .padding(.top, 4)
+                .foregroundColor(AppTheme.Colors.textPrimary)
             }
-            
-            Button(action: onStart) {
-                Text("Start Flow")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 30)
-                    .padding(.vertical, 12)
-                    .background(
-                        Capsule()
-                            .fill(LinearGradient(colors: [.mint, .teal], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    )
-                    .shadow(color: .mint.opacity(0.4), radius: 10, y: 5)
+
+            PrimaryCapsuleButton(title: "Start Flow", systemImage: "play.fill", style: .focus) {
+                onStart()
             }
-            .buttonStyle(.plain)
         }
-        .frame(width: 300, height: 250)
+        .padding(24)
+        .frame(width: 320, height: 300)
         .background(Material.regular)
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.Effects.cardRadius, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.Effects.cardRadius, style: .continuous)
+                .stroke(AppTheme.Colors.surfaceStroke, lineWidth: 1)
+        )
     }
 }

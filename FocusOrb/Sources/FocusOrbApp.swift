@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import AppKit
 
 @main
 struct FocusOrbApp: App {
@@ -24,6 +25,8 @@ struct FocusOrbApp: App {
 class AppDelegate: NSObject, NSApplicationDelegate {
     var orbWindowManager: OrbWindowManager?
     var statusBarManager: StatusBarManager?
+    var stateMachine: OrbStateMachine?
+    private var powerOffObserver: Any?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Set as accessory app (menu bar only, no Dock icon)
@@ -41,6 +44,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Initialize Core Logic
         let eventStore = EventStore.shared
         let stateMachine = OrbStateMachine(eventStore: eventStore)
+        self.stateMachine = stateMachine
+
+        // Best-effort: close an active session on shutdown/power-off.
+        powerOffObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.willPowerOffNotification,
+            object: nil,
+            queue: nil
+        ) { [weak self] _ in
+            self?.endActiveSessionIfNeeded(reason: "power_off")
+        }
         
         // Initialize Orb Window
         orbWindowManager = OrbWindowManager(stateMachine: stateMachine)
@@ -52,5 +65,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             guard let windowManager = orbWindowManager else { return }
             self.statusBarManager?.setup(windowManager: windowManager, stateMachine: stateMachine)
         }
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        endActiveSessionIfNeeded(reason: "terminate")
+        if let powerOffObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(powerOffObserver)
+        }
+    }
+
+    private func endActiveSessionIfNeeded(reason: String) {
+        guard let sessionId = stateMachine?.activeSessionId else { return }
+        EventStore.shared.append(
+            OrbEvent(type: .sessionEnd, sessionId: sessionId, meta: ["reason": reason])
+        )
+        RuntimeSessionSnapshotStore.shared.clear()
     }
 }

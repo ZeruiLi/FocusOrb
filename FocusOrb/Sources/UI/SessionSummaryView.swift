@@ -14,16 +14,21 @@ struct SessionSummaryView: View {
     let showReflection: Bool
     let onSetMood: (SessionMood?) -> Void
     let onClose: () -> Void
+    let onConfirmEnd: (() -> Void)?
+    let onContinueSession: (() -> Void)?
 
     @State private var isExporting = false
     @State private var exportError: String?
     
     var body: some View {
         VStack(spacing: 12) {
-            // Header
-            Text("Session Complete")
-                .font(.caption)
-                .foregroundColor(.secondary)
+            StickerHeader(
+                imageName: "focus",
+                title: "Session Complete",
+                subtitle: nil,
+                style: .centered,
+                iconSize: 36
+            )
             
             // Merge hint
             if let count = mergedSessionCount, count > 1 {
@@ -36,7 +41,7 @@ struct SessionSummaryView: View {
             Text(formatDuration(sessionDuration))
                 .font(.system(.title, design: .rounded).monospacedDigit())
                 .fontWeight(.bold)
-                .foregroundColor(Color(red: 0.0, green: 0.95, blue: 0.6))
+                .foregroundColor(AppTheme.Colors.focusMint)
             
             // Time Range
             Text("\(formatTime(startTime)) - \(formatTime(endTime))")
@@ -48,14 +53,14 @@ struct SessionSummaryView: View {
                 Label {
                     Text(formatDuration(greenDuration))
                 } icon: {
-                    Circle().fill(Color.green).frame(width: 6, height: 6)
+                    Circle().fill(AppTheme.Colors.focusMint).frame(width: 6, height: 6)
                 }
                 .font(.footnote)
                 
                 Label {
                     Text(formatDuration(redDuration))
                 } icon: {
-                    Circle().fill(Color.red).frame(width: 6, height: 6)
+                    Circle().fill(AppTheme.Colors.warmOrange).frame(width: 6, height: 6)
                 }
                 .font(.footnote)
             }
@@ -85,52 +90,68 @@ struct SessionSummaryView: View {
 
             // Segment List
             if !segments.isEmpty {
-                ScrollView {
-                    VStack(spacing: 6) {
-                        ForEach(segments) { segment in
-                            HStack {
-                                Circle()
-                                    .fill(segment.type == .green ? Color.green : Color.red)
-                                    .frame(width: 6, height: 6)
-                                
-                                Text("\(formatTime(segment.startTime)) - \(formatTime(segment.endTime ?? Date()))")
-                                    .font(.caption2.monospacedDigit())
-                                
-                                Spacer()
-                                
-                                Text(formatDuration(segment.duration))
-                                    .font(.caption2.monospacedDigit())
-                                    .foregroundColor(.secondary)
+                GlassCard(padding: 12) {
+                    ScrollView {
+                        VStack(spacing: 6) {
+                            ForEach(segments) { segment in
+                                HStack {
+                                    Circle()
+                                        .fill(segment.type == .green ? AppTheme.Colors.focusMint : AppTheme.Colors.warmOrange)
+                                        .frame(width: 6, height: 6)
+
+                                    Text("\(formatTime(segment.startTime)) - \(formatTime(segment.endTime ?? Date()))")
+                                        .font(.caption2.monospacedDigit())
+
+                                    Spacer()
+
+                                    Text(formatDuration(segment.duration))
+                                        .font(.caption2.monospacedDigit())
+                                        .foregroundColor(.secondary)
+                                }
                             }
                         }
                     }
+                    .frame(maxHeight: 120)
                 }
-                .frame(maxHeight: 120)
             }
 
-            Button {
+            PrimaryCapsuleButton(title: "导出小卡", systemImage: "square.and.arrow.up", style: .warm) {
                 exportCard()
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "square.and.arrow.up")
-                    Text("导出小卡")
-                }
-                .font(.caption)
-                .foregroundColor(.primary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Material.thin)
-                .clipShape(Capsule())
-                .overlay(
-                    Capsule()
-                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                )
             }
-            .buttonStyle(.plain)
             .disabled(isExporting)
             .accessibilityLabel(Text("导出专注小卡"))
             
-            if showReflection {
+            if let onConfirmEnd, let onContinueSession {
+                VStack(spacing: 10) {
+                    Text("确认后将结束本次会话")
+                        .font(.caption)
+                        .foregroundColor(.secondary.opacity(0.8))
+
+                    HStack(spacing: 10) {
+                        Button {
+                            onContinueSession()
+                        } label: {
+                            Text("继续会话")
+                                .font(.caption)
+                                .foregroundColor(AppTheme.Colors.textSecondary)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(Material.thin)
+                                .clipShape(Capsule())
+                                .overlay(
+                                    Capsule()
+                                        .stroke(AppTheme.Colors.surfaceStroke, lineWidth: 1)
+                                )
+                        }
+                        .buttonStyle(.plain)
+
+                        PrimaryCapsuleButton(title: "确认结束", systemImage: "checkmark", style: .warm) {
+                            onConfirmEnd()
+                        }
+                    }
+                }
+                .padding(.top, 6)
+            } else if showReflection {
                 VStack(spacing: 10) {
                     Text("这次感觉如何？（可选）")
                         .font(.caption)
@@ -141,19 +162,15 @@ struct SessionSummaryView: View {
                             Button {
                                 onSetMood(mood)
                             } label: {
-                                VStack(spacing: 6) {
-                                    Image(systemName: mood.symbolName)
-                                        .font(.system(size: 14, weight: .semibold))
-                                    Text(mood.title)
-                                        .font(.caption2)
+                                GlassCard(padding: 8) {
+                                    VStack(spacing: 6) {
+                                        Image(systemName: mood.symbolName)
+                                            .font(.system(size: 14, weight: .semibold))
+                                        Text(mood.title)
+                                            .font(.caption2)
+                                    }
+                                    .frame(width: 50, height: 40)
                                 }
-                                .frame(width: 58, height: 44)
-                                .background(Material.thin)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                                )
                             }
                             .buttonStyle(.plain)
                             .accessibilityLabel(Text("心情：\(mood.title)"))
@@ -165,11 +182,15 @@ struct SessionSummaryView: View {
                     } label: {
                         Text("跳过")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(AppTheme.Colors.textSecondary)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
-                            .background(Color.secondary.opacity(0.10))
+                            .background(Material.thin)
                             .clipShape(Capsule())
+                            .overlay(
+                                Capsule()
+                                    .stroke(AppTheme.Colors.surfaceStroke, lineWidth: 1)
+                            )
                     }
                     .buttonStyle(.plain)
                 }
@@ -180,11 +201,15 @@ struct SessionSummaryView: View {
                 } label: {
                     Text("关闭")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(AppTheme.Colors.textSecondary)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(Color.secondary.opacity(0.10))
+                        .background(Material.thin)
                         .clipShape(Capsule())
+                        .overlay(
+                            Capsule()
+                                .stroke(AppTheme.Colors.surfaceStroke, lineWidth: 1)
+                        )
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 6)
@@ -192,9 +217,13 @@ struct SessionSummaryView: View {
         }
         .padding(20)
         .frame(width: 300)
-        .background(Material.ultraThin)
-        .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+        .background(AppTheme.Effects.cardMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.Effects.cardRadius, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.Effects.cardRadius, style: .continuous)
+                .stroke(AppTheme.Colors.surfaceStroke, lineWidth: 1)
+        )
+        .shadow(color: AppTheme.Effects.cardShadow.color, radius: AppTheme.Effects.cardShadow.radius, x: 0, y: 5)
         .alert("导出失败", isPresented: Binding(
             get: { exportError != nil },
             set: { _ in exportError = nil }
@@ -293,57 +322,201 @@ private struct SessionExportCardView: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [Color.mint.opacity(0.25), Color.teal.opacity(0.15)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(Color.white.opacity(0.25), lineWidth: 1)
-                )
+            background
 
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Text("FocusOrb · 专注小卡")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    Spacer()
-                    Image(systemName: "sparkles")
-                        .foregroundColor(.teal)
-                }
+            HStack(alignment: .center, spacing: 18) {
+                leftContent
 
-                Text(formatDuration(sessionDuration))
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-
-                Text("\(formatTime(startTime)) - \(formatTime(endTime))")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-
-                HStack(spacing: 16) {
-                    exportMetric(title: "专注", value: formatDuration(greenDuration), color: .mint)
-                    exportMetric(title: "休息", value: formatDuration(redDuration), color: .red)
-                    exportMetric(title: "平均专注", value: formatDuration(avgGreenStreak), color: .teal)
-                }
+                illustration
+                    .frame(width: 180, height: 170)
             }
-            .padding(20)
+            .padding(22)
         }
-        .frame(width: 420, height: 220)
+        .frame(width: 520, height: 260)
     }
 
-    private func exportMetric(title: String, value: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-            Text(value)
-                .font(.callout.monospacedDigit())
-                .foregroundColor(color)
+    private var background: some View {
+        RoundedRectangle(cornerRadius: 26, style: .continuous)
+            .fill(
+                LinearGradient(
+                    colors: [
+                        Color(red: 1.0, green: 0.98, blue: 0.95),
+                        AppTheme.Colors.focusMintSoft.opacity(0.14),
+                        AppTheme.Colors.warmOrange.opacity(0.10),
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .overlay {
+                ZStack {
+                    Circle()
+                        .fill(AppTheme.Colors.focusMintSoft.opacity(0.16))
+                        .frame(width: 220, height: 220)
+                        .blur(radius: 26)
+                        .offset(x: -160, y: -120)
+
+                    Circle()
+                        .fill(AppTheme.Colors.warmOrange.opacity(0.20))
+                        .frame(width: 260, height: 260)
+                        .blur(radius: 32)
+                        .offset(x: 170, y: 120)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+            }
+            .overlay(
+                RoundedRectangle(cornerRadius: 26, style: .continuous)
+                    .stroke(Color.white.opacity(0.28), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.08), radius: 18, x: 0, y: 10)
+    }
+
+    private var leftContent: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                stickerMini(imageName: "focus")
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("FocusOrb · 专注小卡")
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundColor(AppTheme.Colors.textPrimary.opacity(0.92))
+                    Text("\(formatTime(startTime)) - \(formatTime(endTime))")
+                        .font(.system(size: 11, weight: .medium, design: .rounded).monospacedDigit())
+                        .foregroundColor(AppTheme.Colors.textSecondary.opacity(0.75))
+                }
+
+                Spacer()
+
+                Image(systemName: "sparkles")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(AppTheme.Colors.warmOrange.opacity(0.9))
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(formatDuration(sessionDuration))
+                    .font(.system(size: 44, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [
+                                AppTheme.Colors.focusMintSoft,
+                                AppTheme.Colors.focusMintSoft.opacity(0.75),
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .shadow(color: AppTheme.Colors.focusMintSoft.opacity(0.18), radius: 10, x: 0, y: 6)
+
+                Text("本次专注时长")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+            }
+
+            HStack(spacing: 10) {
+                exportMetricPill(
+                    title: "专注",
+                    value: formatDuration(greenDuration),
+                    tint: AppTheme.Colors.focusMintSoft,
+                    systemImage: "leaf.fill"
+                )
+
+                exportMetricPill(
+                    title: "休息",
+                    value: formatDuration(redDuration),
+                    tint: AppTheme.Colors.warmOrange,
+                    systemImage: "cup.and.saucer.fill"
+                )
+
+                exportMetricPill(
+                    title: "平均专注",
+                    value: formatDuration(avgGreenStreak),
+                    tint: AppTheme.Colors.focusMintSoft.opacity(0.9),
+                    systemImage: "clock.fill"
+                )
+            }
         }
+    }
+
+    private var illustration: some View {
+        ZStack {
+            Circle()
+                .fill(AppTheme.Colors.warmOrange.opacity(0.18))
+                .frame(width: 170, height: 170)
+                .blur(radius: 18)
+                .offset(x: 14, y: 10)
+
+            Circle()
+                .fill(AppTheme.Colors.focusMintSoft.opacity(0.16))
+                .frame(width: 160, height: 160)
+                .blur(radius: 18)
+                .offset(x: -10, y: -12)
+
+            if let image = BundledImage.swiftUIImage(named: "focus", subdirectory: "Orb") {
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 175, height: 155)
+                    .shadow(color: Color.black.opacity(0.14), radius: 18, x: 0, y: 12)
+            }
+
+            if let tree = BundledImage.swiftUIImage(named: "tree", subdirectory: "Orb") {
+                tree
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 38, height: 38)
+                    .shadow(color: Color.black.opacity(0.10), radius: 8, x: 0, y: 6)
+                    .offset(x: 42, y: 52)
+            }
+        }
+    }
+
+    private func exportMetricPill(title: String, value: String, tint: Color, systemImage: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(tint.opacity(0.95))
+                Text(title)
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .foregroundColor(AppTheme.Colors.textSecondary.opacity(0.8))
+            }
+
+            Text(value)
+                .font(.system(size: 14, weight: .bold, design: .rounded).monospacedDigit())
+                .foregroundColor(AppTheme.Colors.textPrimary.opacity(0.9))
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.white.opacity(0.42))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.white.opacity(0.28), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 6)
+    }
+
+    private func stickerMini(imageName: String) -> some View {
+        ZStack {
+            Circle()
+                .fill(AppTheme.Colors.warmOrange.opacity(0.18))
+                .frame(width: 34, height: 34)
+                .blur(radius: 8)
+            if let image = BundledImage.swiftUIImage(named: imageName, subdirectory: "Orb") {
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 22, height: 22)
+                    .shadow(color: AppTheme.Colors.warmOrange.opacity(0.22), radius: 6, x: 0, y: 4)
+            } else {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(AppTheme.Colors.warmOrange)
+            }
+        }
+        .frame(width: 34, height: 34)
     }
 
     private func formatDuration(_ interval: TimeInterval) -> String {

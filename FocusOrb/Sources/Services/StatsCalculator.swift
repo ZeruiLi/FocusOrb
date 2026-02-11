@@ -226,5 +226,28 @@ class StatsCalculator {
             maxGreenStreak: maxGreenStreak(segments)
         )
     }
-}
 
+    static func sessionPreviewStats(events: [OrbEvent], previewEndTime: Date) -> SessionStats {
+        guard !events.isEmpty else {
+            return SessionStats(total: 0, green: 0, red: 0, segments: [], avgGreenStreak: 0, maxGreenStreak: 0)
+        }
+
+        let sorted = events.sorted { $0.timestamp < $1.timestamp }
+        guard let last = sorted.last else {
+            return SessionStats(total: 0, green: 0, red: 0, segments: [], avgGreenStreak: 0, maxGreenStreak: 0)
+        }
+
+        if last.type == .sessionEnd {
+            return sessionStats(events: sorted)
+        }
+
+        let endTime = max(previewEndTime, last.timestamp)
+        let syntheticEnd = OrbEvent(
+            timestamp: endTime,
+            type: .sessionEnd,
+            sessionId: last.sessionId
+        )
+
+        return sessionStats(events: sorted + [syntheticEnd])
+    }
+}
