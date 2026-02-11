@@ -15,13 +15,18 @@ class OrbStateMachine: ObservableObject {
 
     internal let eventStore: EventStore
     private var currentSessionId: UUID?
+    private let snapshotStore: RuntimeSessionSnapshotStore
+    private let autoCloseThresholdSeconds: TimeInterval = 30 * 60
 
     private var timer: Timer?
     private var durationTimer: Timer?
     private var greenStartTimeBeforePending: Date?
 
-    init(eventStore: EventStore) {
+    var activeSessionId: UUID? { currentSessionId }
+
+    init(eventStore: EventStore, snapshotStore: RuntimeSessionSnapshotStore = .shared) {
         self.eventStore = eventStore
+        self.snapshotStore = snapshotStore
         restoreState()
     }
 
@@ -49,6 +54,7 @@ class OrbStateMachine: ObservableObject {
 
         currentState = .green(startTime: Date())
         startDurationTimer()
+        snapshotStore.recordTick(sessionId: sessionId)
     }
 
     func endSession() {
@@ -66,6 +72,7 @@ class OrbStateMachine: ObservableObject {
         durationTimer?.invalidate()
         currentSessionDuration = 0
         greenStartTimeBeforePending = nil
+        snapshotStore.clear()
     }
 
     func handleClick() {
@@ -78,7 +85,7 @@ class OrbStateMachine: ObservableObject {
         case .green(let greenStart):
             greenStartTimeBeforePending = greenStart
             eventStore.append(OrbEvent(type: .enterRedPending, sessionId: sessionId))
-            startRedPendingTimer()
+            startRedPendingTimer(duration: AppSettings.redPendingDuration)
 
         case .redPending:
             eventStore.append(OrbEvent(type: .cancelRedPending, sessionId: sessionId))
@@ -105,18 +112,22 @@ class OrbStateMachine: ObservableObject {
     }
 
     private func updateDuration() {
+        let now = Date()
         switch currentState {
         case .green(let start):
-            currentSessionDuration = Date().timeIntervalSince(start)
+            currentSessionDuration = now.timeIntervalSince(start)
         case .red(let start):
-            currentSessionDuration = Date().timeIntervalSince(start)
+            currentSessionDuration = now.timeIntervalSince(start)
         default:
             break
         }
+
+        if let sessionId = currentSessionId {
+            snapshotStore.recordTick(sessionId: sessionId, tickAt: now)
+        }
     }
 
-    private func startRedPendingTimer() {
-        let duration = AppSettings.redPendingDuration
+    private func startRedPendingTimer(duration: TimeInterval) {
         let startTime = Date()
         currentState = .redPending(startTime: startTime, remaining: duration)
 
@@ -131,25 +142,16 @@ class OrbStateMachine: ObservableObject {
             } else {
                 self.currentState = .redPending(startTime: startTime, remaining: remaining)
             }
+
+            if let sessionId = self.currentSessionId {
+                self.snapshotStore.recordTick(sessionId: sessionId)
+            }
         }
     }
 
-    private func continueRedPendingTimer(startTime: Date, remaining: TimeInterval) {
-        let duration = AppSettings.redPendingDuration
-        currentState = .redPending(startTime: startTime, remaining: remaining)
-
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            let elapsed = Date().timeIntervalSince(startTime)
-            let newRemaining = max(duration - elapsed, 0)
-
-            if newRemaining == 0 {
-                self.confirmRed()
-            } else {
-                self.currentState = .redPending(startTime: startTime, remaining: newRemaining)
-            }
-        }
+    private func continueRedPendingTimer(remaining: TimeInterval) {
+        // Restart countdown from "remaining" to avoid counting offline time.
+        startRedPendingTimer(duration: remaining)
     }
 
     private func cancelRedPendingTimer() {
@@ -164,37 +166,96 @@ class OrbStateMachine: ObservableObject {
         currentState = .red(startTime: Date())
     }
 
+    private func lastGreenStartBeforePending(sessionId: UUID, pendingAt: Date) -> Date? {
+        let events = eventStore.events(for: sessionId).filter { $0.timestamp < pendingAt }
+        for e in events.reversed() {
+            switch e.type {
+            case .sessionStart, .switchToGreen, .cancelRedPending:
+                return e.timestamp
+            default:
+                continue
+            }
+        }
+        return nil
+    }
+
     private func restoreState() {
         let lastNonReflection = eventStore.events.last { $0.type != .sessionReflection }
-        guard let last = lastNonReflection, last.type != .sessionEnd else {
+        guard let last = lastNonReflection else {
             currentState = .idle
             currentSessionId = nil
+            snapshotStore.clear()
             return
         }
 
-        currentSessionId = last.sessionId
+        guard last.type != .sessionEnd else {
+            currentState = .idle
+            currentSessionId = nil
+            snapshotStore.clear()
+            return
+        }
+
+        let now = Date()
+        let sessionId = last.sessionId
+
+        let snap = snapshotStore.load()
+        let lastTickAt = (snap?.sessionId == sessionId) ? snap?.lastTickAt : nil
+        let effectiveLastTickAt = lastTickAt ?? last.timestamp
+
+        if now.timeIntervalSince(effectiveLastTickAt) > autoCloseThresholdSeconds {
+            // Too stale: close the session at last known in-app tick, then return to idle.
+            eventStore.append(
+                OrbEvent(
+                    timestamp: effectiveLastTickAt,
+                    type: .sessionEnd,
+                    sessionId: sessionId,
+                    meta: ["reason": "stale_autoclose"]
+                )
+            )
+            currentState = .idle
+            currentSessionId = nil
+            timer?.invalidate()
+            durationTimer?.invalidate()
+            currentSessionDuration = 0
+            greenStartTimeBeforePending = nil
+            snapshotStore.clear()
+            return
+        }
+
+        currentSessionId = sessionId
 
         switch last.type {
         case .sessionStart, .switchToGreen, .cancelRedPending:
-            currentState = .green(startTime: last.timestamp)
+            let elapsed = max(effectiveLastTickAt.timeIntervalSince(last.timestamp), 0)
+            currentState = .green(startTime: now.addingTimeInterval(-elapsed))
             startDurationTimer()
 
         case .confirmRedStart:
-            currentState = .red(startTime: last.timestamp)
+            let elapsed = max(effectiveLastTickAt.timeIntervalSince(last.timestamp), 0)
+            currentState = .red(startTime: now.addingTimeInterval(-elapsed))
             startDurationTimer()
 
         case .enterRedPending:
-            let elapsed = Date().timeIntervalSince(last.timestamp)
             let duration = AppSettings.redPendingDuration
+            let pendingElapsed = max(effectiveLastTickAt.timeIntervalSince(last.timestamp), 0)
+            greenStartTimeBeforePending = lastGreenStartBeforePending(sessionId: sessionId, pendingAt: last.timestamp)
 
-            if elapsed >= duration {
+            if pendingElapsed >= duration {
                 let confirmTime = last.timestamp.addingTimeInterval(duration)
-                eventStore.append(OrbEvent(timestamp: confirmTime, type: .confirmRedStart, sessionId: last.sessionId))
-                currentState = .red(startTime: confirmTime)
+                eventStore.append(
+                    OrbEvent(
+                        timestamp: confirmTime,
+                        type: .confirmRedStart,
+                        sessionId: last.sessionId,
+                        meta: ["source": "restore"]
+                    )
+                )
+                let redElapsed = max(effectiveLastTickAt.timeIntervalSince(confirmTime), 0)
+                currentState = .red(startTime: now.addingTimeInterval(-redElapsed))
                 startDurationTimer()
             } else {
-                let remaining = duration - elapsed
-                continueRedPendingTimer(startTime: last.timestamp, remaining: remaining)
+                let remaining = duration - pendingElapsed
+                continueRedPendingTimer(remaining: remaining)
             }
 
         default:
