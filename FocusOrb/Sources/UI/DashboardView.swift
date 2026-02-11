@@ -86,36 +86,34 @@ struct DashboardView: View {
         case .year: return "今年会话"
         }
     }
+
+    private var periodSubtitle: String {
+        switch selectedPeriod {
+        case .day: return "今日概览"
+        case .week: return "本周概览"
+        case .month: return "本月概览"
+        case .year: return "今年概览"
+        }
+    }
     
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
                 // Header with Period Picker
                 HStack {
-                    Text("专注复盘")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                    StickerHeader(
+                        imageName: "focus",
+                        title: "专注复盘",
+                        subtitle: periodSubtitle,
+                        style: .leading,
+                        iconSize: 36
+                    )
                     
                     Spacer()
                     
-                    Button {
+                    PrimaryCapsuleButton(title: "导出小卡", systemImage: "square.and.arrow.up", style: .warm) {
                         showExportSheet = true
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "square.and.arrow.up")
-                            Text("导出小卡")
-                        }
-                        .font(.callout)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Material.thin)
-                        .clipShape(Capsule())
-                        .overlay(
-                            Capsule()
-                                .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                        )
                     }
-                    .buttonStyle(.plain)
                     
                     Picker("Period", selection: $selectedPeriod) {
                         ForEach(StatsPeriod.allCases, id: \.self) { period in
@@ -124,6 +122,13 @@ struct DashboardView: View {
                     }
                     .pickerStyle(.segmented)
                     .frame(width: 200)
+                    .padding(4)
+                    .background(Material.thin)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .stroke(AppTheme.Colors.surfaceStroke, lineWidth: 1)
+                    )
                 }
                 .padding(.horizontal)
                 
@@ -131,11 +136,22 @@ struct DashboardView: View {
                 ZStack {
                     Circle()
                         .stroke(Color.gray.opacity(0.2), lineWidth: 20)
-                    
+
                     Circle()
-                        .trim(from: 0, to: focusRatio)
+                        .trim(from: clampedFocusRatio, to: 1)
                         .stroke(
-                            AngularGradient(colors: [.mint, .teal], center: .center),
+                            AngularGradient(
+                                colors: [AppTheme.Colors.warmOrange.opacity(0.9), AppTheme.Colors.warmOrange.opacity(0.65)],
+                                center: .center
+                            ),
+                            style: StrokeStyle(lineWidth: 20, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(-90))
+
+                    Circle()
+                        .trim(from: 0, to: clampedFocusRatio)
+                        .stroke(
+                            AngularGradient(colors: [AppTheme.Colors.focusMintSoft, AppTheme.Colors.focusMintSoft.opacity(0.7)], center: .center),
                             style: StrokeStyle(lineWidth: 20, lineCap: .round)
                         )
                         .rotationEffect(.degrees(-90))
@@ -144,6 +160,7 @@ struct DashboardView: View {
                     VStack {
                         Text(formatDuration(greenTotal))
                             .font(.system(size: 42, weight: .bold, design: .rounded))
+                            .foregroundColor(AppTheme.Colors.focusMintSoft)
                         Text("专注时长")
                             .font(.headline)
                             .foregroundColor(.secondary)
@@ -154,9 +171,9 @@ struct DashboardView: View {
                 
                 // Metric Cards
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                    MetricCard(title: "休息时长", value: formatDuration(redTotal), color: .red)
+                    MetricCard(title: "休息时长", value: formatDuration(redTotal), color: AppTheme.Colors.warmOrange)
                     MetricCard(title: "专注比例", value: String(format: "%.0f%%", focusRatio * 100), color: .teal)
-                    MetricCard(title: "平均专注", value: formatDuration(avgStreak), color: .mint)
+                    MetricCard(title: "平均专注", value: formatDuration(avgStreak), color: AppTheme.Colors.focusMintSoft)
                     MetricCard(title: "最长专注", value: formatDuration(maxStreak), color: .green)
                 }
                 .padding(.horizontal)
@@ -178,13 +195,13 @@ struct DashboardView: View {
                             title: "段数",
                             value: "\(focusBlocks) 专注 · \(breakBlocks) 休息",
                             systemImage: "rectangle.split.3x1",
-                            tint: .mint
+                            tint: AppTheme.Colors.focusMintSoft
                         )
                         InsightCard(
                             title: "平均休息",
                             value: avgBreak > 0 ? formatDuration(avgBreak) : "—",
                             systemImage: "cup.and.saucer.fill",
-                            tint: .red
+                            tint: AppTheme.Colors.warmOrange
                         )
                         InsightCard(
                             title: "误触回滚",
@@ -220,8 +237,8 @@ struct DashboardView: View {
                         .padding(.horizontal)
                         .chartYAxisLabel("小时")
                         .chartForegroundStyleScale([
-                            "专注": AnyShapeStyle(Color.mint.gradient),
-                            "休息": AnyShapeStyle(Color.red.opacity(0.85))
+                            "专注": AnyShapeStyle(AppTheme.Colors.focusMintSoft.gradient),
+                            "休息": AnyShapeStyle(AppTheme.Colors.warmOrange.opacity(0.9))
                         ])
                         .chartLegend(position: .top, alignment: .leading)
                     }
@@ -393,6 +410,10 @@ struct DashboardView: View {
         return greenTotal / total
     }
 
+    private var clampedFocusRatio: Double {
+        min(max(focusRatio, 0), 1)
+    }
+
     private var focusBlocks: Int {
         filteredSegments.filter { $0.type == .green }.count
     }
@@ -516,17 +537,17 @@ struct DashboardView: View {
         if selectedPeriod == .day {
             return [
                 AnalysisItem(title: "高效时段", value: peakFocusHourLabel(), systemImage: "clock.fill", tint: .teal),
-                AnalysisItem(title: "专注时长", value: formatDuration(greenTotal), systemImage: "leaf.fill", tint: .mint),
-                AnalysisItem(title: "休息占比", value: breakRatioPercent, systemImage: "cup.and.saucer.fill", tint: .red),
+                AnalysisItem(title: "专注时长", value: formatDuration(greenTotal), systemImage: "leaf.fill", tint: AppTheme.Colors.focusMintSoft),
+                AnalysisItem(title: "休息占比", value: breakRatioPercent, systemImage: "cup.and.saucer.fill", tint: AppTheme.Colors.warmOrange),
                 AnalysisItem(title: "切换次数", value: "\(switchCount)", systemImage: "arrow.left.and.right", tint: .orange)
             ]
         }
 
         return [
-            AnalysisItem(title: "最专注的一天", value: bestFocusDayLabel, systemImage: "star.fill", tint: .mint),
+            AnalysisItem(title: "最专注的一天", value: bestFocusDayLabel, systemImage: "star.fill", tint: AppTheme.Colors.focusMintSoft),
             AnalysisItem(title: "平均每日专注", value: formatDuration(avgFocusPerDay), systemImage: "gauge.medium", tint: .teal),
             AnalysisItem(title: "有专注的天数", value: "\(focusDays)/\(totalDaysInRange)", systemImage: "calendar", tint: .green),
-            AnalysisItem(title: "休息占比", value: breakRatioPercent, systemImage: "cup.and.saucer.fill", tint: .red)
+            AnalysisItem(title: "休息占比", value: breakRatioPercent, systemImage: "cup.and.saucer.fill", tint: AppTheme.Colors.warmOrange)
         ]
     }
 
@@ -1207,7 +1228,7 @@ private struct DashboardExportCardView: View {
             .frame(height: options.density == .comfy ? 160 : 130)
             .chartForegroundStyleScale([
                 "专注": AnyShapeStyle(accent.gradient),
-                "休息": AnyShapeStyle(Color.red.opacity(options.visualStyle == .fresh ? 0.75 : 0.85))
+                "休息": AnyShapeStyle(AppTheme.Colors.warmOrange.opacity(options.visualStyle == .fresh ? 0.75 : 0.85))
             ])
             .chartLegend(position: .top, alignment: .leading)
         }
@@ -1342,19 +1363,18 @@ struct MetricCard: View {
     let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            Text(value)
-                .font(.title2.monospacedDigit())
-                .fontWeight(.semibold)
-                .foregroundColor(color)
+        GlassCard {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title)
+                    .font(AppTheme.Typography.caption)
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+                Text(value)
+                    .font(.title2.monospacedDigit())
+                    .fontWeight(.semibold)
+                    .foregroundColor(color)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(Material.thin)
-        .cornerRadius(12)
     }
 }
 
@@ -1364,76 +1384,71 @@ struct SessionCard: View {
     let session: DashboardView.SessionDisplay
     
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text("\(session.startTime, style: .time) - \(session.endTime, style: .time)")
-                        .font(.headline)
-                    
-                    if let mood = session.mood {
-                        HStack(spacing: 4) {
-                            Image(systemName: mood.symbolName)
-                                .font(.caption2)
-                            Text(mood.title)
-                                .font(.caption2)
-                        }
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.secondary.opacity(0.12))
-                        .cornerRadius(6)
-                        .accessibilityLabel(Text("心情：\(mood.title)"))
-                    }
-                    
-                    // Merge badge
-                    if session.mergedCount > 1 {
-                        Text("×\(session.mergedCount)")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
+        GlassCard {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("\(session.startTime, style: .time) - \(session.endTime, style: .time)")
+                            .font(.headline)
+
+                        if let mood = session.mood {
+                            HStack(spacing: 4) {
+                                Image(systemName: mood.symbolName)
+                                    .font(.caption2)
+                                Text(mood.title)
+                                    .font(.caption2)
+                            }
+                            .foregroundColor(AppTheme.Colors.textSecondary)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Color.secondary.opacity(0.2))
-                            .cornerRadius(4)
+                            .background(Color.secondary.opacity(0.12))
+                            .cornerRadius(6)
+                            .accessibilityLabel(Text("心情：\(mood.title)"))
+                        }
+
+                        // Merge badge
+                        if session.mergedCount > 1 {
+                            Text("×\(session.mergedCount)")
+                                .font(.caption2)
+                                .foregroundColor(AppTheme.Colors.textSecondary)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.secondary.opacity(0.2))
+                                .cornerRadius(4)
+                        }
                     }
+
+                    Text("总计 \(formatDuration(session.totalDuration))")
+                        .font(.caption)
+                        .foregroundColor(AppTheme.Colors.textSecondary)
                 }
-                
-                Text("总计 \(formatDuration(session.totalDuration))")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            VStack(alignment: .trailing, spacing: 4) {
-                // Green Time
-                HStack(spacing: 6) {
-                    Text(formatDuration(session.greenDuration))
-                        .font(.system(.body, design: .monospaced))
-                        .fontWeight(.medium)
-                        .foregroundColor(.primary)
-                    
-                    Circle().fill(Color.mint).frame(width: 8, height: 8)
-                }
-                
-                // Red Time (only if exists)
-                if session.redDuration > 0 {
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 4) {
+                    // Green Time
                     HStack(spacing: 6) {
-                        Text(formatDuration(session.redDuration))
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundColor(.secondary)
-                        
-                        Circle().fill(Color.red).frame(width: 8, height: 8)
+                        Text(formatDuration(session.greenDuration))
+                            .font(.system(.body, design: .monospaced))
+                            .fontWeight(.medium)
+                            .foregroundColor(.primary)
+
+                        Circle().fill(AppTheme.Colors.focusMintSoft).frame(width: 8, height: 8)
+                    }
+
+                    // Red Time (only if exists)
+                    if session.redDuration > 0 {
+                        HStack(spacing: 6) {
+                            Text(formatDuration(session.redDuration))
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundColor(AppTheme.Colors.textSecondary)
+
+                            Circle().fill(AppTheme.Colors.warmOrange).frame(width: 8, height: 8)
+                        }
                     }
                 }
             }
         }
-        .padding()
-        .background(Material.thin)
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.white.opacity(0.1), lineWidth: 1)
-        )
     }
     
     private func formatDuration(_ interval: TimeInterval) -> String {
@@ -1460,34 +1475,29 @@ struct InsightCard: View {
     let tint: Color
 
     var body: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(tint.opacity(0.18))
-                Image(systemName: systemImage)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(tint)
-            }
-            .frame(width: 32, height: 32)
+        GlassCard(padding: 12) {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(tint.opacity(0.18))
+                    Image(systemName: systemImage)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(tint)
+                }
+                .frame(width: 32, height: 32)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                Text(value)
-                    .font(.callout.monospacedDigit())
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(AppTheme.Typography.caption)
+                        .foregroundColor(AppTheme.Colors.textSecondary)
+                    Text(value)
+                        .font(.callout.monospacedDigit())
+                        .fontWeight(.semibold)
+                        .foregroundColor(AppTheme.Colors.textPrimary)
+                }
+                Spacer(minLength: 0)
             }
-            Spacer(minLength: 0)
         }
-        .padding(12)
-        .background(Material.thin)
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.white.opacity(0.10), lineWidth: 1)
-        )
     }
 }
 
