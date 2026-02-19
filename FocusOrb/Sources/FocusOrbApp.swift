@@ -45,6 +45,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let eventStore = EventStore.shared
         let stateMachine = OrbStateMachine(eventStore: eventStore)
         self.stateMachine = stateMachine
+        syncLaunchAtLoginSetting()
 
         // Best-effort: close an active session on shutdown/power-off.
         powerOffObserver = NSWorkspace.shared.notificationCenter.addObserver(
@@ -80,5 +81,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             OrbEvent(type: .sessionEnd, sessionId: sessionId, meta: ["reason": reason])
         )
         RuntimeSessionSnapshotStore.shared.clear()
+    }
+
+    private func syncLaunchAtLoginSetting() {
+        let requested = AppSettings.shared.launchAtLogin
+        if LaunchAtLoginManager.shared.isEnabled != requested {
+            _ = LaunchAtLoginManager.shared.setEnabled(requested)
+        }
+        AppSettings.shared.launchAtLogin = LaunchAtLoginManager.shared.isEnabled
     }
 }

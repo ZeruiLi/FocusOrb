@@ -1,0 +1,474 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		05DCA9764EA308D738E2BC37 /* StickerHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B8EB65D1492CDFFC3145DA9 /* StickerHeader.swift */; };
+		092B68C78DF5DD14502CA964 /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCBA1258B9D5FBEF71CAC48A /* LaunchAtLoginManager.swift */; };
+		0D771ADB4D508F23B5915616 /* RuntimeSessionSnapshotStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CEE6B0CA364310FAA309AD4 /* RuntimeSessionSnapshotStore.swift */; };
+		12D69330524E0D76265E2D9D /* EventStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF0AF64BC1B91DFC77C2FDB /* EventStore.swift */; };
+		23B14944B48FBEA59C1754D7 /* focus.png in Resources */ = {isa = PBXBuildFile; fileRef = EF668F7F4783275D7807A728 /* focus.png */; };
+		30A2601C6D5A5974B1F3B26E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 260AE03BF7FB2671F9A9FCFA /* PrivacyInfo.xcprivacy */; };
+		3875D3B361FF39959AAB3EFE /* SessionSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FF48B840C351513BB564EA3 /* SessionSummaryView.swift */; };
+		3DE335AFE18BEC5B1A32B645 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B659C4A57C399BE11BD671F /* GlassCard.swift */; };
+		46A56BED07DC8AD1A848A554 /* StartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08F8E1C37729E9BA4D136A76 /* StartView.swift */; };
+		49FF9BAD88F134CD4D2DB201 /* cup.png in Resources */ = {isa = PBXBuildFile; fileRef = 838AE99097C37A7F5224C9E4 /* cup.png */; };
+		4DEC88C0C15D2E998CDCE301 /* SessionMood.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A86B5C10DECE7538A9319EC /* SessionMood.swift */; };
+		5711525F301AD637B6DE0224 /* BundledImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA0B9AC37CB9E3A95C05740 /* BundledImage.swift */; };
+		6DC936E1CC86A36345EA7CAA /* PrimaryCapsuleButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9BAE54CEB2DC9D56A693416 /* PrimaryCapsuleButton.swift */; };
+		7509B4FCC145C4F5D193F42A /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D22B97A17E5AC1A88F996E5D /* AppTheme.swift */; };
+		7E39FAB6BE6F512CB9FECB40 /* OrbStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50B35BD284FA11BB6CC33CFC /* OrbStateMachine.swift */; };
+		A28076E09A6375CDB05C01F1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D5F728B4C28EC43845224B8 /* SettingsView.swift */; };
+		AB79D5F2DA6BE6DD3D506FDF /* IdleTimeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EDCF560DAE2016D0335A21 /* IdleTimeProvider.swift */; };
+		AC6900462C883517F8A59F72 /* sleep.png in Resources */ = {isa = PBXBuildFile; fileRef = 0B57D390F32594B10A3AEAAA /* sleep.png */; };
+		AC77A45FBE546EEE5CF06A0B /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38EB97F48767C588A3A26BD /* DashboardView.swift */; };
+		AE07E7E177744DE77BF8946D /* OrbWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 077F6E2548C02B565135556B /* OrbWindowManager.swift */; };
+		AE6FB9ADC1B13A05A7CF22CB /* OrbEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97879E0DC575868CE5D9643F /* OrbEvent.swift */; };
+		B1DE4ECEB2CF22674DC12206 /* break.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F27B46025C8D133AFC032C0 /* break.png */; };
+		B8441E117B128EB552C9310D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A8D6B8C536DEDB118D0E648E /* Assets.xcassets */; };
+		BD507358A0B04A27F2B7A5BA /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29508ED106076A4D477EA5B3 /* Cocoa.framework */; };
+		C8B9819DBE10990D7CAA2181 /* StatsCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACA993C20A13A70731BDD603 /* StatsCalculator.swift */; };
+		D755D6006EE53AF29E5C869D /* DatabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C362ACA07FE5408DECBCF8D3 /* DatabaseManager.swift */; };
+		DE565C88E4537B4CEFB89DC6 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C4A5B06C5E7D0A7BBA517C4 /* AppSettings.swift */; };
+		E093A1CE1D81AC7587FE6361 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 6059BD49A385AEA4E9D359C1 /* GRDB */; };
+		E4C5AC6BAE2FCCC7765EB391 /* OrbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC62AB4538DE95AA5932230A /* OrbView.swift */; };
+		EF4CA6D0A40B6BC54B9C6789 /* FocusOrbApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 585C803F0839291E58D67202 /* FocusOrbApp.swift */; };
+		F25BDF0ED314B2CA3793E63E /* tree.png in Resources */ = {isa = PBXBuildFile; fileRef = BBB55FB15907B70C3D5BF021 /* tree.png */; };
+		FD563D6F27C0DE399D01171A /* OrbDesignSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99093DA986A4FE0E495B35AE /* OrbDesignSurface.swift */; };
+		FF1CAA9A53CFB66AEFF7D4BE /* StatusBarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24A4771AFE328E67AE5C9430 /* StatusBarManager.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		077F6E2548C02B565135556B /* OrbWindowManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OrbWindowManager.swift; path = Sources/UI/OrbWindowManager.swift; sourceTree = "<group>"; };
+		08F8E1C37729E9BA4D136A76 /* StartView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StartView.swift; path = Sources/UI/StartView.swift; sourceTree = "<group>"; };
+		0B57D390F32594B10A3AEAAA /* sleep.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = sleep.png; path = Sources/Resources/Orb/sleep.png; sourceTree = "<group>"; };
+		0D5F728B4C28EC43845224B8 /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Sources/UI/SettingsView.swift; sourceTree = "<group>"; };
+		24A4771AFE328E67AE5C9430 /* StatusBarManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StatusBarManager.swift; path = Sources/UI/StatusBarManager.swift; sourceTree = "<group>"; };
+		260AE03BF7FB2671F9A9FCFA /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Sources/Resources/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		29508ED106076A4D477EA5B3 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		2EF0AF64BC1B91DFC77C2FDB /* EventStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = EventStore.swift; path = Sources/Services/EventStore.swift; sourceTree = "<group>"; };
+		3F27B46025C8D133AFC032C0 /* break.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = break.png; path = Sources/Resources/Orb/break.png; sourceTree = "<group>"; };
+		4A86B5C10DECE7538A9319EC /* SessionMood.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SessionMood.swift; path = Sources/Models/SessionMood.swift; sourceTree = "<group>"; };
+		4B659C4A57C399BE11BD671F /* GlassCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GlassCard.swift; path = Sources/UI/Components/GlassCard.swift; sourceTree = "<group>"; };
+		4B8EB65D1492CDFFC3145DA9 /* StickerHeader.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StickerHeader.swift; path = Sources/UI/Components/StickerHeader.swift; sourceTree = "<group>"; };
+		50B35BD284FA11BB6CC33CFC /* OrbStateMachine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OrbStateMachine.swift; path = Sources/Domain/OrbStateMachine.swift; sourceTree = "<group>"; };
+		585C803F0839291E58D67202 /* FocusOrbApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FocusOrbApp.swift; path = Sources/FocusOrbApp.swift; sourceTree = "<group>"; };
+		5D927C8D8C1B9A9143EA1116 /* FocusOrb.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = FocusOrb.entitlements; sourceTree = "<group>"; };
+		60829F62B303489B975D9C1C /* FocusOrb.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FocusOrb.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		65EDCF560DAE2016D0335A21 /* IdleTimeProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = IdleTimeProvider.swift; path = Sources/Services/IdleTimeProvider.swift; sourceTree = "<group>"; };
+		6C4A5B06C5E7D0A7BBA517C4 /* AppSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppSettings.swift; path = Sources/Models/AppSettings.swift; sourceTree = "<group>"; };
+		7CEE6B0CA364310FAA309AD4 /* RuntimeSessionSnapshotStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RuntimeSessionSnapshotStore.swift; path = Sources/Services/RuntimeSessionSnapshotStore.swift; sourceTree = "<group>"; };
+		838AE99097C37A7F5224C9E4 /* cup.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = cup.png; path = Sources/Resources/Orb/cup.png; sourceTree = "<group>"; };
+		8FF48B840C351513BB564EA3 /* SessionSummaryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SessionSummaryView.swift; path = Sources/UI/SessionSummaryView.swift; sourceTree = "<group>"; };
+		97879E0DC575868CE5D9643F /* OrbEvent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OrbEvent.swift; path = Sources/Models/OrbEvent.swift; sourceTree = "<group>"; };
+		99093DA986A4FE0E495B35AE /* OrbDesignSurface.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OrbDesignSurface.swift; path = Sources/UI/Components/OrbDesignSurface.swift; sourceTree = "<group>"; };
+		9DBA2CB8E377F18D9860F6AF /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A8D6B8C536DEDB118D0E648E /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Sources/Resources/Assets.xcassets; sourceTree = "<group>"; };
+		AC62AB4538DE95AA5932230A /* OrbView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OrbView.swift; path = Sources/UI/OrbView.swift; sourceTree = "<group>"; };
+		ACA993C20A13A70731BDD603 /* StatsCalculator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StatsCalculator.swift; path = Sources/Services/StatsCalculator.swift; sourceTree = "<group>"; };
+		BBB55FB15907B70C3D5BF021 /* tree.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = tree.png; path = Sources/Resources/Orb/tree.png; sourceTree = "<group>"; };
+		C362ACA07FE5408DECBCF8D3 /* DatabaseManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DatabaseManager.swift; path = Sources/Services/DatabaseManager.swift; sourceTree = "<group>"; };
+		CCBA1258B9D5FBEF71CAC48A /* LaunchAtLoginManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LaunchAtLoginManager.swift; path = Sources/Services/LaunchAtLoginManager.swift; sourceTree = "<group>"; };
+		D22B97A17E5AC1A88F996E5D /* AppTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppTheme.swift; path = Sources/UI/AppTheme.swift; sourceTree = "<group>"; };
+		D38EB97F48767C588A3A26BD /* DashboardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DashboardView.swift; path = Sources/UI/DashboardView.swift; sourceTree = "<group>"; };
+		EAA0B9AC37CB9E3A95C05740 /* BundledImage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BundledImage.swift; path = Sources/UI/BundledImage.swift; sourceTree = "<group>"; };
+		EF668F7F4783275D7807A728 /* focus.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = focus.png; path = Sources/Resources/Orb/focus.png; sourceTree = "<group>"; };
+		F9BAE54CEB2DC9D56A693416 /* PrimaryCapsuleButton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrimaryCapsuleButton.swift; path = Sources/UI/Components/PrimaryCapsuleButton.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		644B5B04498B1F6A5C60EEB1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BD507358A0B04A27F2B7A5BA /* Cocoa.framework in Frameworks */,
+				E093A1CE1D81AC7587FE6361 /* GRDB in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1881B38C3C70128B18976E87 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6AECF2C7C96C55D118820A12 /* OS X */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		4376C001ED0A9AE998999BC0 = {
+			isa = PBXGroup;
+			children = (
+				76078B99330A71494846C5B1 /* Products */,
+				1881B38C3C70128B18976E87 /* Frameworks */,
+				50B35BD284FA11BB6CC33CFC /* OrbStateMachine.swift */,
+				585C803F0839291E58D67202 /* FocusOrbApp.swift */,
+				6C4A5B06C5E7D0A7BBA517C4 /* AppSettings.swift */,
+				97879E0DC575868CE5D9643F /* OrbEvent.swift */,
+				4A86B5C10DECE7538A9319EC /* SessionMood.swift */,
+				C362ACA07FE5408DECBCF8D3 /* DatabaseManager.swift */,
+				2EF0AF64BC1B91DFC77C2FDB /* EventStore.swift */,
+				65EDCF560DAE2016D0335A21 /* IdleTimeProvider.swift */,
+				CCBA1258B9D5FBEF71CAC48A /* LaunchAtLoginManager.swift */,
+				7CEE6B0CA364310FAA309AD4 /* RuntimeSessionSnapshotStore.swift */,
+				ACA993C20A13A70731BDD603 /* StatsCalculator.swift */,
+				D22B97A17E5AC1A88F996E5D /* AppTheme.swift */,
+				EAA0B9AC37CB9E3A95C05740 /* BundledImage.swift */,
+				4B659C4A57C399BE11BD671F /* GlassCard.swift */,
+				99093DA986A4FE0E495B35AE /* OrbDesignSurface.swift */,
+				F9BAE54CEB2DC9D56A693416 /* PrimaryCapsuleButton.swift */,
+				4B8EB65D1492CDFFC3145DA9 /* StickerHeader.swift */,
+				D38EB97F48767C588A3A26BD /* DashboardView.swift */,
+				AC62AB4538DE95AA5932230A /* OrbView.swift */,
+				077F6E2548C02B565135556B /* OrbWindowManager.swift */,
+				8FF48B840C351513BB564EA3 /* SessionSummaryView.swift */,
+				0D5F728B4C28EC43845224B8 /* SettingsView.swift */,
+				08F8E1C37729E9BA4D136A76 /* StartView.swift */,
+				24A4771AFE328E67AE5C9430 /* StatusBarManager.swift */,
+				A8D6B8C536DEDB118D0E648E /* Assets.xcassets */,
+				260AE03BF7FB2671F9A9FCFA /* PrivacyInfo.xcprivacy */,
+				3F27B46025C8D133AFC032C0 /* break.png */,
+				838AE99097C37A7F5224C9E4 /* cup.png */,
+				EF668F7F4783275D7807A728 /* focus.png */,
+				0B57D390F32594B10A3AEAAA /* sleep.png */,
+				BBB55FB15907B70C3D5BF021 /* tree.png */,
+				9DBA2CB8E377F18D9860F6AF /* Info.plist */,
+				5D927C8D8C1B9A9143EA1116 /* FocusOrb.entitlements */,
+			);
+			sourceTree = "<group>";
+		};
+		6AECF2C7C96C55D118820A12 /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				29508ED106076A4D477EA5B3 /* Cocoa.framework */,
+			);
+			name = "OS X";
+			sourceTree = "<group>";
+		};
+		76078B99330A71494846C5B1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				60829F62B303489B975D9C1C /* FocusOrb.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E994F2F3FCD607738A88276C /* FocusOrb */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BF1C1AF44CC34666BA9BBF51 /* Build configuration list for PBXNativeTarget "FocusOrb" */;
+			buildPhases = (
+				223CAEC9ABF8F8AF72BBC35C /* Sources */,
+				644B5B04498B1F6A5C60EEB1 /* Frameworks */,
+				22C837F38389060F0C2E7952 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FocusOrb;
+			packageProductDependencies = (
+				6059BD49A385AEA4E9D359C1 /* GRDB */,
+			);
+			productName = FocusOrb;
+			productReference = 60829F62B303489B975D9C1C /* FocusOrb.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		762EEC4529F04617E9E0FF0F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1700;
+				LastUpgradeCheck = 1700;
+			};
+			buildConfigurationList = D6DE888A64552A5044C2F209 /* Build configuration list for PBXProject "FocusOrb" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 4376C001ED0A9AE998999BC0;
+			minimizedProjectReferenceProxies = 0;
+			packageReferences = (
+				7B572FF77B19C3D076C54F02 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
+			);
+			productRefGroup = 76078B99330A71494846C5B1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E994F2F3FCD607738A88276C /* FocusOrb */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		22C837F38389060F0C2E7952 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B8441E117B128EB552C9310D /* Assets.xcassets in Resources */,
+				30A2601C6D5A5974B1F3B26E /* PrivacyInfo.xcprivacy in Resources */,
+				B1DE4ECEB2CF22674DC12206 /* break.png in Resources */,
+				49FF9BAD88F134CD4D2DB201 /* cup.png in Resources */,
+				23B14944B48FBEA59C1754D7 /* focus.png in Resources */,
+				AC6900462C883517F8A59F72 /* sleep.png in Resources */,
+				F25BDF0ED314B2CA3793E63E /* tree.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		223CAEC9ABF8F8AF72BBC35C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7E39FAB6BE6F512CB9FECB40 /* OrbStateMachine.swift in Sources */,
+				EF4CA6D0A40B6BC54B9C6789 /* FocusOrbApp.swift in Sources */,
+				DE565C88E4537B4CEFB89DC6 /* AppSettings.swift in Sources */,
+				AE6FB9ADC1B13A05A7CF22CB /* OrbEvent.swift in Sources */,
+				4DEC88C0C15D2E998CDCE301 /* SessionMood.swift in Sources */,
+				D755D6006EE53AF29E5C869D /* DatabaseManager.swift in Sources */,
+				12D69330524E0D76265E2D9D /* EventStore.swift in Sources */,
+				AB79D5F2DA6BE6DD3D506FDF /* IdleTimeProvider.swift in Sources */,
+				092B68C78DF5DD14502CA964 /* LaunchAtLoginManager.swift in Sources */,
+				0D771ADB4D508F23B5915616 /* RuntimeSessionSnapshotStore.swift in Sources */,
+				C8B9819DBE10990D7CAA2181 /* StatsCalculator.swift in Sources */,
+				7509B4FCC145C4F5D193F42A /* AppTheme.swift in Sources */,
+				5711525F301AD637B6DE0224 /* BundledImage.swift in Sources */,
+				3DE335AFE18BEC5B1A32B645 /* GlassCard.swift in Sources */,
+				FD563D6F27C0DE399D01171A /* OrbDesignSurface.swift in Sources */,
+				6DC936E1CC86A36345EA7CAA /* PrimaryCapsuleButton.swift in Sources */,
+				05DCA9764EA308D738E2BC37 /* StickerHeader.swift in Sources */,
+				AC77A45FBE546EEE5CF06A0B /* DashboardView.swift in Sources */,
+				E4C5AC6BAE2FCCC7765EB391 /* OrbView.swift in Sources */,
+				AE07E7E177744DE77BF8946D /* OrbWindowManager.swift in Sources */,
+				3875D3B361FF39959AAB3EFE /* SessionSummaryView.swift in Sources */,
+				A28076E09A6375CDB05C01F1 /* SettingsView.swift in Sources */,
+				46A56BED07DC8AD1A848A554 /* StartView.swift in Sources */,
+				FF1CAA9A53CFB66AEFF7D4BE /* StatusBarManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		6B9FC08D4654AD421E5FD77B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = FocusOrb.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.focusorb.app;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		77F65E250FAC532A39F762A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		85BD0031472743657A0C0785 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = FocusOrb.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.focusorb.app;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		EF94649BFED5C313058E60D1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BF1C1AF44CC34666BA9BBF51 /* Build configuration list for PBXNativeTarget "FocusOrb" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B9FC08D4654AD421E5FD77B /* Release */,
+				85BD0031472743657A0C0785 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D6DE888A64552A5044C2F209 /* Build configuration list for PBXProject "FocusOrb" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				77F65E250FAC532A39F762A4 /* Debug */,
+				EF94649BFED5C313058E60D1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7B572FF77B19C3D076C54F02 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6059BD49A385AEA4E9D359C1 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7B572FF77B19C3D076C54F02 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 762EEC4529F04617E9E0FF0F /* Project object */;
+}

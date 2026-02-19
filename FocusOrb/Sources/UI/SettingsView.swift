@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var settings = AppSettings.shared
+    @State private var isSyncingLaunchAtLogin = false
     
     var body: some View {
         ScrollView {
@@ -80,6 +81,14 @@ struct SettingsView: View {
         }
         .frame(width: 520, height: 420)
         .background(Material.thin)
+        .onAppear {
+            syncLaunchAtLoginToggle()
+        }
+        .onChange(of: settings.launchAtLogin) { _, newValue in
+            guard !isSyncingLaunchAtLogin else { return }
+            guard !LaunchAtLoginManager.shared.setEnabled(newValue) else { return }
+            syncLaunchAtLoginToggle()
+        }
     }
 
     @ViewBuilder
@@ -109,5 +118,11 @@ struct SettingsView: View {
             content()
         }
         .frame(minHeight: 32)
+    }
+
+    private func syncLaunchAtLoginToggle() {
+        isSyncingLaunchAtLogin = true
+        settings.launchAtLogin = LaunchAtLoginManager.shared.isEnabled
+        isSyncingLaunchAtLogin = false
     }
 }

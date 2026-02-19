@@ -19,211 +19,85 @@ struct SessionSummaryView: View {
 
     @State private var isExporting = false
     @State private var exportError: String?
-    
+
     var body: some View {
-        VStack(spacing: 12) {
-            StickerHeader(
-                imageName: "focus",
-                title: "Session Complete",
-                subtitle: nil,
-                style: .centered,
-                iconSize: 36
-            )
-            
-            // Merge hint
-            if let count = mergedSessionCount, count > 1 {
-                Text("自动合并了 \(count) 段专注")
-                    .font(.caption2)
-                    .foregroundColor(.secondary.opacity(0.7))
-            }
-            
-            // Total Duration
-            Text(formatDuration(sessionDuration))
-                .font(.system(.title, design: .rounded).monospacedDigit())
-                .fontWeight(.bold)
-                .foregroundColor(AppTheme.Colors.focusMint)
-            
-            // Time Range
-            Text("\(formatTime(startTime)) - \(formatTime(endTime))")
-                .font(.caption2)
-                .foregroundColor(.secondary.opacity(0.6))
-            
-            // Green/Red Summary
-            HStack(spacing: 16) {
-                Label {
-                    Text(formatDuration(greenDuration))
-                } icon: {
-                    Circle().fill(AppTheme.Colors.focusMint).frame(width: 6, height: 6)
+        OrbPanelContainer(padding: 18) {
+            VStack(spacing: 12) {
+                StickerHeader(
+                    imageName: "focus",
+                    title: "Session Complete",
+                    subtitle: "看见节奏，而不是评判",
+                    style: .centered,
+                    iconSize: 38
+                )
+
+                if let count = mergedSessionCount, count > 1 {
+                    mergeHint(count: count)
                 }
-                .font(.footnote)
-                
-                Label {
-                    Text(formatDuration(redDuration))
-                } icon: {
-                    Circle().fill(AppTheme.Colors.warmOrange).frame(width: 6, height: 6)
+
+                durationHero
+
+                HStack(spacing: 10) {
+                    summaryMetric(
+                        title: "专注",
+                        value: formatDuration(greenDuration),
+                        systemImage: "leaf.fill",
+                        tint: AppTheme.Colors.focusTeal
+                    )
+
+                    summaryMetric(
+                        title: "休息",
+                        value: formatDuration(redDuration),
+                        systemImage: "cup.and.saucer.fill",
+                        tint: AppTheme.Colors.warmAmber
+                    )
+
+                    summaryMetric(
+                        title: "专注比例",
+                        value: focusPercentText,
+                        systemImage: "percent",
+                        tint: AppTheme.Colors.focusMintSoft
+                    )
                 }
-                .font(.footnote)
-            }
-            .foregroundColor(.secondary)
-            
-            // Avg Green Streak
-            if avgGreenStreak > 0 {
-                HStack(spacing: 4) {
-                    Text("Avg Focus:")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                    Text(formatDuration(avgGreenStreak))
-                        .font(.caption2.monospacedDigit())
-                        .foregroundColor(.secondary)
-                }
-            }
-            
-            // Gentle summary (emotional value, no judgement)
-            Text(supportiveLine)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.top, 2)
-            
-            Divider()
-                .padding(.vertical, 4)
 
-            // Segment List
-            if !segments.isEmpty {
-                GlassCard(padding: 12) {
-                    ScrollView {
-                        VStack(spacing: 6) {
-                            ForEach(segments) { segment in
-                                HStack {
-                                    Circle()
-                                        .fill(segment.type == .green ? AppTheme.Colors.focusMint : AppTheme.Colors.warmOrange)
-                                        .frame(width: 6, height: 6)
-
-                                    Text("\(formatTime(segment.startTime)) - \(formatTime(segment.endTime ?? Date()))")
-                                        .font(.caption2.monospacedDigit())
-
-                                    Spacer()
-
-                                    Text(formatDuration(segment.duration))
-                                        .font(.caption2.monospacedDigit())
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                        }
-                    }
-                    .frame(maxHeight: 120)
-                }
-            }
-
-            PrimaryCapsuleButton(title: "导出小卡", systemImage: "square.and.arrow.up", style: .warm) {
-                exportCard()
-            }
-            .disabled(isExporting)
-            .accessibilityLabel(Text("导出专注小卡"))
-            
-            if let onConfirmEnd, let onContinueSession {
-                VStack(spacing: 10) {
-                    Text("确认后将结束本次会话")
-                        .font(.caption)
-                        .foregroundColor(.secondary.opacity(0.8))
-
-                    HStack(spacing: 10) {
-                        Button {
-                            onContinueSession()
-                        } label: {
-                            Text("继续会话")
-                                .font(.caption)
-                                .foregroundColor(AppTheme.Colors.textSecondary)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .background(Material.thin)
-                                .clipShape(Capsule())
-                                .overlay(
-                                    Capsule()
-                                        .stroke(AppTheme.Colors.surfaceStroke, lineWidth: 1)
-                                )
-                        }
-                        .buttonStyle(.plain)
-
-                        PrimaryCapsuleButton(title: "确认结束", systemImage: "checkmark", style: .warm) {
-                            onConfirmEnd()
-                        }
-                    }
-                }
-                .padding(.top, 6)
-            } else if showReflection {
-                VStack(spacing: 10) {
-                    Text("这次感觉如何？（可选）")
-                        .font(.caption)
-                        .foregroundColor(.secondary.opacity(0.8))
-                    
-                    HStack(spacing: 10) {
-                        ForEach(SessionMood.allCases) { mood in
-                            Button {
-                                onSetMood(mood)
-                            } label: {
-                                GlassCard(padding: 8) {
-                                    VStack(spacing: 6) {
-                                        Image(systemName: mood.symbolName)
-                                            .font(.system(size: 14, weight: .semibold))
-                                        Text(mood.title)
-                                            .font(.caption2)
-                                    }
-                                    .frame(width: 50, height: 40)
-                                }
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(Text("心情：\(mood.title)"))
-                        }
-                    }
-                    
-                    Button {
-                        onSetMood(nil)
-                    } label: {
-                        Text("跳过")
+                if avgGreenStreak > 0 {
+                    HStack(spacing: 6) {
+                        Image(systemName: "clock.fill")
+                            .font(.caption2)
+                            .foregroundColor(AppTheme.Colors.textMuted)
+                        Text("平均专注")
                             .font(.caption)
+                            .foregroundColor(AppTheme.Colors.textMuted)
+                        Text(formatDuration(avgGreenStreak))
+                            .font(.caption.monospacedDigit())
                             .foregroundColor(AppTheme.Colors.textSecondary)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(Material.thin)
-                            .clipShape(Capsule())
-                            .overlay(
-                                Capsule()
-                                    .stroke(AppTheme.Colors.surfaceStroke, lineWidth: 1)
-                            )
                     }
-                    .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(.top, 6)
-            } else {
-                Button {
-                    onClose()
-                } label: {
-                    Text("关闭")
+
+                GlassCard(padding: 10) {
+                    Text(supportiveLine)
                         .font(.caption)
                         .foregroundColor(AppTheme.Colors.textSecondary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Material.thin)
-                        .clipShape(Capsule())
-                        .overlay(
-                            Capsule()
-                                .stroke(AppTheme.Colors.surfaceStroke, lineWidth: 1)
-                        )
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .buttonStyle(.plain)
-                .padding(.top, 6)
+
+                if !segments.isEmpty {
+                    segmentsSection
+                }
+
+                PrimaryCapsuleButton(title: "导出小卡", systemImage: "square.and.arrow.up", style: .warm) {
+                    exportCard()
+                }
+                .disabled(isExporting)
+                .accessibilityLabel(Text("导出专注小卡"))
+                .opacity(isExporting ? 0.6 : 1)
+
+                actionArea
             }
         }
-        .padding(20)
-        .frame(width: 300)
-        .background(AppTheme.Effects.cardMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: AppTheme.Effects.cardRadius, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: AppTheme.Effects.cardRadius, style: .continuous)
-                .stroke(AppTheme.Colors.surfaceStroke, lineWidth: 1)
-        )
-        .shadow(color: AppTheme.Effects.cardShadow.color, radius: AppTheme.Effects.cardShadow.radius, x: 0, y: 5)
+        .padding(10)
+        .frame(width: 356)
         .alert("导出失败", isPresented: Binding(
             get: { exportError != nil },
             set: { _ in exportError = nil }
@@ -233,21 +107,233 @@ struct SessionSummaryView: View {
             Text(exportError ?? "")
         }
     }
-    
+
+    private var durationHero: some View {
+        GlassCard(padding: 14) {
+            VStack(spacing: 8) {
+                Text(formatDuration(sessionDuration))
+                    .font(.system(size: 34, weight: .bold, design: .rounded).monospacedDigit())
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [AppTheme.Colors.focusTeal, AppTheme.Colors.focusMintSoft],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+
+                Text("\(formatTime(startTime)) - \(formatTime(endTime))")
+                    .font(.caption.monospacedDigit())
+                    .foregroundColor(AppTheme.Colors.textMuted)
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    @ViewBuilder
+    private func mergeHint(count: Int) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: "arrow.triangle.merge")
+                .font(.caption2)
+            Text("自动合并了 \(count) 段专注")
+                .font(.caption)
+        }
+        .foregroundColor(AppTheme.Colors.textSecondary)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color.white.opacity(0.32))
+        .clipShape(Capsule())
+        .overlay(
+            Capsule()
+                .stroke(Color.white.opacity(0.35), lineWidth: 1)
+        )
+    }
+
+    private var segmentsSection: some View {
+        GlassCard(padding: 12) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text("会话片段")
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(AppTheme.Colors.textSecondary)
+                    Spacer()
+                    Text("\(segments.count) 段")
+                        .font(.caption.monospacedDigit())
+                        .foregroundColor(AppTheme.Colors.textMuted)
+                }
+
+                ScrollView {
+                    VStack(spacing: 8) {
+                        ForEach(segments) { segment in
+                            HStack(spacing: 8) {
+                                Circle()
+                                    .fill(segment.type == .green ? AppTheme.Colors.focusTeal : AppTheme.Colors.warmAmber)
+                                    .frame(width: 7, height: 7)
+
+                                Text("\(formatTime(segment.startTime)) - \(formatTime(segment.endTime ?? Date()))")
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundColor(AppTheme.Colors.textSecondary)
+
+                                Spacer()
+
+                                Text(formatDuration(segment.duration))
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundColor(AppTheme.Colors.textMuted)
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 6)
+                            .background(Color.white.opacity(0.30))
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        }
+                    }
+                }
+                .frame(maxHeight: 132)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var actionArea: some View {
+        if let onConfirmEnd, let onContinueSession {
+            VStack(spacing: 10) {
+                Text("确认后将结束本次会话")
+                    .font(.caption)
+                    .foregroundColor(AppTheme.Colors.textMuted)
+
+                HStack(spacing: 10) {
+                    Button {
+                        onContinueSession()
+                    } label: {
+                        Text("继续会话")
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(AppTheme.Colors.textSecondary)
+                            .frame(minWidth: 96, minHeight: 38)
+                            .background(Color.white.opacity(0.30))
+                            .clipShape(Capsule())
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.white.opacity(0.36), lineWidth: 1)
+                            )
+                    }
+                    .buttonStyle(.plain)
+
+                    PrimaryCapsuleButton(title: "确认结束", systemImage: "checkmark", style: .warm) {
+                        onConfirmEnd()
+                    }
+                }
+            }
+            .padding(.top, 2)
+        } else if showReflection {
+            reflectionArea
+        } else {
+            Button {
+                onClose()
+            } label: {
+                Text("关闭")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+                    .frame(minWidth: 84, minHeight: 38)
+                    .background(Color.white.opacity(0.30))
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule()
+                            .stroke(Color.white.opacity(0.36), lineWidth: 1)
+                    )
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 2)
+        }
+    }
+
+    private var reflectionArea: some View {
+        VStack(spacing: 10) {
+            Text("这次感觉如何？（可选）")
+                .font(.caption)
+                .foregroundColor(AppTheme.Colors.textMuted)
+
+            HStack(spacing: 10) {
+                ForEach(SessionMood.allCases) { mood in
+                    Button {
+                        onSetMood(mood)
+                    } label: {
+                        VStack(spacing: 6) {
+                            Image(systemName: mood.symbolName)
+                                .font(.system(size: 14, weight: .semibold))
+                            Text(mood.title)
+                                .font(.caption2)
+                        }
+                        .foregroundColor(AppTheme.Colors.textSecondary)
+                        .frame(width: 56, height: 54)
+                        .background(Color.white.opacity(0.30))
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(Color.white.opacity(0.36), lineWidth: 1)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("心情：\(mood.title)"))
+                }
+            }
+
+            Button {
+                onSetMood(nil)
+            } label: {
+                Text("跳过")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+                    .frame(minWidth: 84, minHeight: 34)
+                    .background(Color.white.opacity(0.30))
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule()
+                            .stroke(Color.white.opacity(0.36), lineWidth: 1)
+                    )
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.top, 2)
+    }
+
+    private func summaryMetric(title: String, value: String, systemImage: String, tint: Color) -> some View {
+        GlassCard(padding: 10) {
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 5) {
+                    Image(systemName: systemImage)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundColor(tint)
+                    Text(title)
+                        .font(.caption2)
+                        .foregroundColor(AppTheme.Colors.textMuted)
+                }
+
+                Text(value)
+                    .font(.caption.weight(.semibold).monospacedDigit())
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var focusPercentText: String {
+        let total = greenDuration + redDuration
+        guard total > 0 else { return "—" }
+        return String(format: "%.0f%%", (greenDuration / total) * 100)
+    }
+
     private var supportiveLine: String {
         let total = greenDuration + redDuration
         guard total > 0 else { return "今天的每一小段努力都算数。" }
-        
+
         let ratio = greenDuration / total
         if ratio >= 0.7 {
             return "你保持了清晰的节奏。"
         } else if ratio >= 0.4 {
             return "有专注也有恢复，这很真实。"
         } else {
-            return "你也在照顾自己——休息是计划的一部分。"
+            return "你也在照顾自己，休息是计划的一部分。"
         }
     }
-    
+
     private func formatDuration(_ interval: TimeInterval) -> String {
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.hour, .minute, .second]
@@ -255,7 +341,7 @@ struct SessionSummaryView: View {
         formatter.zeroFormattingBehavior = .pad
         return formatter.string(from: interval) ?? "00:00:00"
     }
-    
+
     private func formatTime(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
@@ -322,186 +408,149 @@ private struct SessionExportCardView: View {
 
     var body: some View {
         ZStack {
-            background
+            OrbExportBackground()
 
-            HStack(alignment: .center, spacing: 18) {
-                leftContent
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 10) {
+                    stickerMini(imageName: "focus")
 
-                illustration
-                    .frame(width: 180, height: 170)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("FocusOrb · Session")
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .foregroundColor(AppTheme.Colors.exportTextSecondary)
+                        Text("\(formatTime(startTime)) - \(formatTime(endTime))")
+                            .font(.system(size: 11, weight: .medium, design: .rounded).monospacedDigit())
+                            .foregroundColor(AppTheme.Colors.exportTextSecondary.opacity(0.85))
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(AppTheme.Colors.warmAmber)
+                }
+
+                OrbExportSurface(padding: 14, cornerRadius: 18, emphasized: true) {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(formatDuration(sessionDuration))
+                                .font(.system(size: 38, weight: .bold, design: .rounded).monospacedDigit())
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [AppTheme.Colors.focusTeal, AppTheme.Colors.focusMintSoft],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+
+                            Text("本次专注时长")
+                                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                                .foregroundColor(AppTheme.Colors.exportTextSecondary)
+                        }
+
+                        Spacer(minLength: 8)
+
+                        orbIllustration
+                            .frame(width: 136, height: 96)
+                    }
+                }
+
+                HStack(spacing: 10) {
+                    exportMetricTile(
+                        title: "专注",
+                        value: formatDuration(greenDuration),
+                        tint: AppTheme.Colors.focusTeal,
+                        systemImage: "leaf.fill"
+                    )
+
+                    exportMetricTile(
+                        title: "休息",
+                        value: formatDuration(redDuration),
+                        tint: AppTheme.Colors.warmAmber,
+                        systemImage: "cup.and.saucer.fill"
+                    )
+
+                    exportMetricTile(
+                        title: "平均专注",
+                        value: formatDuration(avgGreenStreak),
+                        tint: AppTheme.Colors.focusMintSoft,
+                        systemImage: "clock.fill"
+                    )
+                }
+
+                OrbExportSurface(padding: 10, cornerRadius: 14) {
+                    Text(supportiveLine)
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundColor(AppTheme.Colors.exportTextSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
             .padding(22)
         }
-        .frame(width: 520, height: 260)
+        .frame(width: 560, height: 320)
     }
 
-    private var background: some View {
-        RoundedRectangle(cornerRadius: 26, style: .continuous)
-            .fill(
-                LinearGradient(
-                    colors: [
-                        Color(red: 1.0, green: 0.98, blue: 0.95),
-                        AppTheme.Colors.focusMintSoft.opacity(0.14),
-                        AppTheme.Colors.warmOrange.opacity(0.10),
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .overlay {
-                ZStack {
-                    Circle()
-                        .fill(AppTheme.Colors.focusMintSoft.opacity(0.16))
-                        .frame(width: 220, height: 220)
-                        .blur(radius: 26)
-                        .offset(x: -160, y: -120)
+    private var supportiveLine: String {
+        let total = greenDuration + redDuration
+        guard total > 0 else { return "今天的每一小段努力都算数。" }
 
-                    Circle()
-                        .fill(AppTheme.Colors.warmOrange.opacity(0.20))
-                        .frame(width: 260, height: 260)
-                        .blur(radius: 32)
-                        .offset(x: 170, y: 120)
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
-            }
-            .overlay(
-                RoundedRectangle(cornerRadius: 26, style: .continuous)
-                    .stroke(Color.white.opacity(0.28), lineWidth: 1)
-            )
-            .shadow(color: Color.black.opacity(0.08), radius: 18, x: 0, y: 10)
-    }
-
-    private var leftContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                stickerMini(imageName: "focus")
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("FocusOrb · 专注小卡")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundColor(AppTheme.Colors.textPrimary.opacity(0.92))
-                    Text("\(formatTime(startTime)) - \(formatTime(endTime))")
-                        .font(.system(size: 11, weight: .medium, design: .rounded).monospacedDigit())
-                        .foregroundColor(AppTheme.Colors.textSecondary.opacity(0.75))
-                }
-
-                Spacer()
-
-                Image(systemName: "sparkles")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(AppTheme.Colors.warmOrange.opacity(0.9))
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(formatDuration(sessionDuration))
-                    .font(.system(size: 44, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [
-                                AppTheme.Colors.focusMintSoft,
-                                AppTheme.Colors.focusMintSoft.opacity(0.75),
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .shadow(color: AppTheme.Colors.focusMintSoft.opacity(0.18), radius: 10, x: 0, y: 6)
-
-                Text("本次专注时长")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundColor(AppTheme.Colors.textSecondary)
-            }
-
-            HStack(spacing: 10) {
-                exportMetricPill(
-                    title: "专注",
-                    value: formatDuration(greenDuration),
-                    tint: AppTheme.Colors.focusMintSoft,
-                    systemImage: "leaf.fill"
-                )
-
-                exportMetricPill(
-                    title: "休息",
-                    value: formatDuration(redDuration),
-                    tint: AppTheme.Colors.warmOrange,
-                    systemImage: "cup.and.saucer.fill"
-                )
-
-                exportMetricPill(
-                    title: "平均专注",
-                    value: formatDuration(avgGreenStreak),
-                    tint: AppTheme.Colors.focusMintSoft.opacity(0.9),
-                    systemImage: "clock.fill"
-                )
-            }
+        let ratio = greenDuration / total
+        if ratio >= 0.7 {
+            return "你保持了清晰的节奏。"
+        } else if ratio >= 0.4 {
+            return "有专注也有恢复，这很真实。"
+        } else {
+            return "你也在照顾自己，休息是计划的一部分。"
         }
     }
 
-    private var illustration: some View {
+    private var orbIllustration: some View {
         ZStack {
             Circle()
-                .fill(AppTheme.Colors.warmOrange.opacity(0.18))
-                .frame(width: 170, height: 170)
+                .fill(AppTheme.Colors.panelGlowMint.opacity(0.92))
+                .frame(width: 106, height: 106)
                 .blur(radius: 18)
-                .offset(x: 14, y: 10)
 
             Circle()
-                .fill(AppTheme.Colors.focusMintSoft.opacity(0.16))
-                .frame(width: 160, height: 160)
-                .blur(radius: 18)
-                .offset(x: -10, y: -12)
+                .fill(AppTheme.Colors.panelGlowWarm.opacity(0.86))
+                .frame(width: 94, height: 94)
+                .blur(radius: 16)
+                .offset(x: 18, y: 16)
 
             if let image = BundledImage.swiftUIImage(named: "focus", subdirectory: "Orb") {
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 175, height: 155)
-                    .shadow(color: Color.black.opacity(0.14), radius: 18, x: 0, y: 12)
-            }
-
-            if let tree = BundledImage.swiftUIImage(named: "tree", subdirectory: "Orb") {
-                tree
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 38, height: 38)
-                    .shadow(color: Color.black.opacity(0.10), radius: 8, x: 0, y: 6)
-                    .offset(x: 42, y: 52)
+                    .frame(width: 102, height: 84)
+                    .shadow(color: Color.black.opacity(0.15), radius: 12, x: 0, y: 6)
             }
         }
     }
 
-    private func exportMetricPill(title: String, value: String, tint: Color, systemImage: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(tint.opacity(0.95))
-                Text(title)
-                    .font(.system(size: 10, weight: .semibold, design: .rounded))
-                    .foregroundColor(AppTheme.Colors.textSecondary.opacity(0.8))
-            }
+    private func exportMetricTile(title: String, value: String, tint: Color, systemImage: String) -> some View {
+        OrbExportSurface(padding: 10, cornerRadius: 14) {
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 5) {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(tint)
+                    Text(title)
+                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .foregroundColor(AppTheme.Colors.exportTextSecondary)
+                }
 
-            Text(value)
-                .font(.system(size: 14, weight: .bold, design: .rounded).monospacedDigit())
-                .foregroundColor(AppTheme.Colors.textPrimary.opacity(0.9))
+                Text(value)
+                    .font(.system(size: 14, weight: .bold, design: .rounded).monospacedDigit())
+                    .foregroundColor(AppTheme.Colors.exportTextPrimary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.white.opacity(0.42))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(Color.white.opacity(0.28), lineWidth: 1)
-        )
-        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 6)
     }
 
     private func stickerMini(imageName: String) -> some View {
         ZStack {
             Circle()
-                .fill(AppTheme.Colors.warmOrange.opacity(0.18))
+                .fill(AppTheme.Colors.panelGlowWarm.opacity(0.90))
                 .frame(width: 34, height: 34)
                 .blur(radius: 8)
             if let image = BundledImage.swiftUIImage(named: imageName, subdirectory: "Orb") {
@@ -509,11 +558,10 @@ private struct SessionExportCardView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 22, height: 22)
-                    .shadow(color: AppTheme.Colors.warmOrange.opacity(0.22), radius: 6, x: 0, y: 4)
             } else {
                 Image(systemName: "sparkles")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(AppTheme.Colors.warmOrange)
+                    .foregroundColor(AppTheme.Colors.warmAmber)
             }
         }
         .frame(width: 34, height: 34)
@@ -522,11 +570,15 @@ private struct SessionExportCardView: View {
     private func formatDuration(_ interval: TimeInterval) -> String {
         let hours = Int(interval) / 3600
         let minutes = Int(interval) / 60 % 60
+        let seconds = Int(interval) % 60
+
         if hours > 0 {
             return String(format: "%dh %02dm", hours, minutes)
-        } else {
-            return String(format: "%02dm", minutes)
         }
+        if minutes > 0 {
+            return String(format: "%02dm %02ds", minutes, seconds)
+        }
+        return String(format: "%02ds", seconds)
     }
 
     private func formatTime(_ date: Date) -> String {

@@ -10,13 +10,35 @@ struct GlassCard<Content: View>: View {
     }
 
     var body: some View {
+        let shape = RoundedRectangle(cornerRadius: AppTheme.Effects.cardRadius, style: .continuous)
+
         content
             .padding(padding)
-            .background(AppTheme.Effects.cardMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Effects.cardRadius, style: .continuous))
+            .background {
+                ZStack {
+                    shape.fill(AppTheme.Effects.cardMaterial)
+                    shape
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.24),
+                                    Color.white.opacity(0.08)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                }
+            }
+            .clipShape(shape)
             .overlay(
-                RoundedRectangle(cornerRadius: AppTheme.Effects.cardRadius, style: .continuous)
+                shape
                     .stroke(AppTheme.Colors.surfaceStroke, lineWidth: 1)
+            )
+            .overlay(
+                shape
+                    .stroke(Color.white.opacity(0.24), lineWidth: 0.5)
+                    .blur(radius: 0.2)
             )
             .shadow(
                 color: AppTheme.Effects.cardShadow.color,
@@ -26,4 +48,3 @@ struct GlassCard<Content: View>: View {
             )
     }
 }
-

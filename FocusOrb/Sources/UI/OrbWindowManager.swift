@@ -121,6 +121,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     private var cancellables = Set<AnyCancellable>()
     private var isPresentingPreEndSummary = false
     private var skipPostEndSummaryOnce = false
+    private var isOrbInteractionLocked = false
     
     init(stateMachine: OrbStateMachine) {
         self.stateMachine = stateMachine
@@ -144,6 +145,15 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
             }
         }
     }
+
+    private func setOrbInteractionLocked(_ locked: Bool) {
+        isOrbInteractionLocked = locked
+        panel?.ignoresMouseEvents = locked
+    }
+
+    private func dismissStartPanelIfVisible() {
+        startPanel?.orderOut(nil)
+    }
     
     func setupPanel() {
         // Borderless panel with deterministic input arbitration.
@@ -156,10 +166,12 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         self.panel = dragPanel
 
         dragPanel.onTap = { [weak self] in
-            self?.stateMachine.handleClick()
+            guard let self = self, !self.isOrbInteractionLocked else { return }
+            self.stateMachine.handleClick()
         }
         dragPanel.onLongPress = { [weak self] in
-            self?.requestSessionEndFromOrb()
+            guard let self = self, !self.isOrbInteractionLocked else { return }
+            self.requestSessionEndFromOrb()
         }
         dragPanel.onPressStateChanged = { [weak self] isPressed in
             self?.interactionState.isPressed = isPressed
@@ -225,6 +237,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     private var contextMenu: NSMenu?
     
     private func showContextMenu(at location: NSPoint, in view: NSView) {
+        guard !isOrbInteractionLocked else { return }
         guard let menu = contextMenu else { return }
         menu.popUp(positioning: nil, at: location, in: view)
     }
@@ -256,6 +269,8 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     }
 
     private func requestSessionEnd(showOrbAfterCancel: Bool) {
+        guard !isOrbInteractionLocked else { return }
+        guard !isPresentingPreEndSummary else { return }
         guard let sessionId = stateMachine.activeSessionId else { return }
         let sessionEvents = EventStore.shared.events(for: sessionId)
         guard !sessionEvents.isEmpty else {
@@ -297,8 +312,8 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
             .dropFirst()
             .removeDuplicates()
             .sink { [weak self] state in
+                guard let self = self else { return }
                 if case .idle = state {
-                    guard let self = self else { return }
                     if self.skipPostEndSummaryOnce {
                         self.skipPostEndSummaryOnce = false
                         self.showStart()
@@ -313,6 +328,13 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
                     } else {
                         // Very short session, skip summary and go to start
                         self.showStart()
+                    }
+                } else {
+                    if self.startPanel?.isVisible == true {
+                        self.dismissStartPanelIfVisible()
+                    }
+                    if !AppSettings.shared.hasSeenOnboarding {
+                        AppSettings.shared.hasSeenOnboarding = true
                     }
                 }
             }
@@ -399,6 +421,9 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     }
     
     private func showStart() {
+        setOrbInteractionLocked(false)
+        hideOrb()
+
         if startPanel == nil {
             let startView = StartView { [weak self] in
                 self?.startFlow()
@@ -422,13 +447,15 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     }
     
     private func startFlow() {
-        startPanel?.close()
+        dismissStartPanelIfVisible()
         AppSettings.shared.hasSeenOnboarding = true
         stateMachine.startSession()
         showOrb()
     }
     
     func showOrb() {
+        guard !isOrbInteractionLocked else { return }
+
         if let screen = NSScreen.main {
             let screenRect = screen.visibleFrame
             let margin: CGFloat = 24
@@ -448,6 +475,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     @Published var isOrbVisible: Bool = false
     
     func toggleOrb() {
+        guard !isOrbInteractionLocked else { return }
         print("🔄 toggleOrb called, isOrbVisible: \(isOrbVisible)")
         if isOrbVisible {
             hideOrb()
@@ -457,6 +485,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     }
 
     private func revealOrbAtCurrentPosition() {
+        guard !isOrbInteractionLocked else { return }
         panel.orderFront(nil)
         isOrbVisible = true
     }
@@ -464,6 +493,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     private func cancelPreEndSummary(showOrbAfterCancel: Bool) {
         isPresentingPreEndSummary = false
         summaryPanel?.orderOut(nil)
+        setOrbInteractionLocked(false)
         if showOrbAfterCancel {
             revealOrbAtCurrentPosition()
         }
@@ -473,6 +503,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         isPresentingPreEndSummary = false
         skipPostEndSummaryOnce = true
         summaryPanel?.orderOut(nil)
+        setOrbInteractionLocked(false)
         stateMachine.endSession()
     }
     
@@ -483,7 +514,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         // Create dashboard window if needed
         if dashboardWindow == nil {
             let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 600, height: 500),
+                contentRect: NSRect(x: 0, y: 0, width: 920, height: 780),
                 styleMask: [.titled, .closable, .miniaturizable, .resizable],
                 backing: .buffered,
                 defer: false
@@ -568,10 +599,12 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
                         )
                     )
                 }
+                self?.setOrbInteractionLocked(false)
                 self?.summaryPanel?.orderOut(nil)
                 self?.showStart()
             },
             onClose: { [weak self] in
+                self?.setOrbInteractionLocked(false)
                 self?.summaryPanel?.orderOut(nil)
                 self?.showStart()
             },
@@ -589,7 +622,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     private func prepareSummaryPanelIfNeeded() {
         if summaryPanel == nil {
             summaryPanel = NSPanel(
-                contentRect: NSRect(x: 0, y: 0, width: 340, height: 420),
+                contentRect: NSRect(x: 0, y: 0, width: 396, height: 620),
                 styleMask: [.borderless, .nonactivatingPanel],
                 backing: .buffered,
                 defer: false
@@ -612,6 +645,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         onConfirmEnd: (() -> Void)?,
         onContinueSession: (() -> Void)?
     ) {
+        setOrbInteractionLocked(true)
         hideOrb()
         prepareSummaryPanelIfNeeded()
 
@@ -636,7 +670,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         if let orbFrame = panel.frame as CGRect? {
             let centerX = orbFrame.midX
             let centerY = orbFrame.midY
-            let summarySize = summaryPanel?.frame.size ?? CGSize(width: 340, height: 420)
+            let summarySize = summaryPanel?.frame.size ?? CGSize(width: 396, height: 620)
             let summaryOrigin = CGPoint(
                 x: centerX - summarySize.width / 2,
                 y: centerY - summarySize.height / 2
