@@ -93,6 +93,7 @@ Just a tiny always-on-top orb.
 ## Product Docs
 
 - App Insights (App-level contextual stats): `docs/app-insights-research.md`, `docs/app-insights-prd.md`, `docs/app-insights-design.md`
+- Notes / Tasks / Clips (UI exploration): `docs/notes-tasks-clips-ux.md`
 
 ## Requirements
 
