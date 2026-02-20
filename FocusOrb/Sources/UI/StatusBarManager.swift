@@ -80,29 +80,41 @@ class StatusBarManager {
     private func buildMenu() -> NSMenu {
         let menu = NSMenu()
         
-        let showOrbItem = NSMenuItem(title: "Show/Hide Orb", action: #selector(toggleOrbAction), keyEquivalent: "")
+        let showOrbItem = NSMenuItem(title: L10n.string("Show/Hide Orb"), action: #selector(toggleOrbAction), keyEquivalent: "")
         showOrbItem.target = self
         menu.addItem(showOrbItem)
         
         menu.addItem(NSMenuItem.separator())
         
-        let endSessionItem = NSMenuItem(title: "End Session", action: #selector(endSessionAction), keyEquivalent: "")
+        let endSessionItem = NSMenuItem(title: L10n.string("End Session"), action: #selector(endSessionAction), keyEquivalent: "")
         endSessionItem.target = self
         menu.addItem(endSessionItem)
         
         menu.addItem(NSMenuItem.separator())
         
-        let dashboardItem = NSMenuItem(title: "Dashboard", action: #selector(dashboardAction), keyEquivalent: "d")
+        let dashboardItem = NSMenuItem(title: L10n.string("Dashboard"), action: #selector(dashboardAction), keyEquivalent: "d")
         dashboardItem.target = self
         menu.addItem(dashboardItem)
+
+        let captureItem = NSMenuItem(title: L10n.string("Capture..."), action: #selector(captureAction), keyEquivalent: "c")
+        captureItem.target = self
+        menu.addItem(captureItem)
+
+        let quickNoteItem = NSMenuItem(title: L10n.string("Quick Note..."), action: #selector(quickNoteAction), keyEquivalent: "n")
+        quickNoteItem.target = self
+        menu.addItem(quickNoteItem)
+
+        let quickClipsItem = NSMenuItem(title: L10n.string("Quick Clips"), action: #selector(quickClipsAction), keyEquivalent: "l")
+        quickClipsItem.target = self
+        menu.addItem(quickClipsItem)
         
-        let settingsItem = NSMenuItem(title: "Settings...", action: #selector(settingsAction), keyEquivalent: ",")
+        let settingsItem = NSMenuItem(title: L10n.string("Settings..."), action: #selector(settingsAction), keyEquivalent: ",")
         settingsItem.target = self
         menu.addItem(settingsItem)
         
         menu.addItem(NSMenuItem.separator())
         
-        let quitItem = NSMenuItem(title: "Quit FocusOrb", action: #selector(quitAction), keyEquivalent: "q")
+        let quitItem = NSMenuItem(title: L10n.string("Quit FocusOrb"), action: #selector(quitAction), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
         
@@ -153,6 +165,24 @@ class StatusBarManager {
     
     @objc private func dashboardAction() {
         windowManager?.showDashboard()
+    }
+
+    @objc private func captureAction() {
+        DispatchQueue.main.async { [weak self] in
+            self?.windowManager?.showCapture(initialTab: .notes)
+        }
+    }
+
+    @objc private func quickNoteAction() {
+        DispatchQueue.main.async { [weak self] in
+            self?.windowManager?.showQuickNote()
+        }
+    }
+
+    @objc private func quickClipsAction() {
+        DispatchQueue.main.async { [weak self] in
+            self?.windowManager?.showQuickClips()
+        }
     }
     
     @objc private func settingsAction() {

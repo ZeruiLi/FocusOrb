@@ -8,10 +8,15 @@ enum StatsPeriod: String, CaseIterable {
     case week = "周"
     case month = "月"
     case year = "年"
+
+    var title: String {
+        L10n.string(rawValue)
+    }
 }
 
 struct DashboardView: View {
     @ObservedObject var eventStore: EventStore
+    @ObservedObject private var settings = AppSettings.shared
     @State private var selectedPeriod: StatsPeriod = .day
     @State private var showExportSheet = false
     @State private var exportOptions = DashboardExportOptions()
@@ -69,259 +74,73 @@ struct DashboardView: View {
         let hours: Double
     }
 
+    private var focusSeriesLabel: String { L10n.string("专注") }
+    private var breakSeriesLabel: String { L10n.string("休息") }
+
     private var stackedTrendPoints: [DailyStackPoint] {
         dailyTrend.flatMap { stat in
             [
-                DailyStackPoint(date: stat.date, type: "专注", hours: stat.greenTotal / 3600),
-                DailyStackPoint(date: stat.date, type: "休息", hours: stat.redTotal / 3600)
+                DailyStackPoint(date: stat.date, type: focusSeriesLabel, hours: stat.greenTotal / 3600),
+                DailyStackPoint(date: stat.date, type: breakSeriesLabel, hours: stat.redTotal / 3600)
             ]
         }
     }
     
     private var sessionListTitle: String {
         switch selectedPeriod {
-        case .day: return "今日会话"
-        case .week: return "本周会话"
-        case .month: return "本月会话"
-        case .year: return "今年会话"
+        case .day: return L10n.string("今日会话")
+        case .week: return L10n.string("本周会话")
+        case .month: return L10n.string("本月会话")
+        case .year: return L10n.string("今年会话")
         }
     }
 
     private var periodSubtitle: String {
         switch selectedPeriod {
-        case .day: return "今日概览"
-        case .week: return "本周概览"
-        case .month: return "本月概览"
-        case .year: return "今年概览"
+        case .day: return L10n.string("今日概览")
+        case .week: return L10n.string("本周概览")
+        case .month: return L10n.string("本月概览")
+        case .year: return L10n.string("今年概览")
         }
     }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                // Header with Period Picker
-                HStack {
-                    StickerHeader(
-                        imageName: "focus",
-                        title: "专注复盘",
-                        subtitle: periodSubtitle,
-                        style: .leading,
-                        iconSize: 36
+        ZStack {
+            dashboardBackground
+                .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 14) {
+                    dashboardHeader
+                    DashboardHeroCard(
+                        focusDuration: formatDuration(greenTotal),
+                        focusRatio: focusRatio,
+                        dateRangeText: dateRangeLabel,
+                        focusValue: formatDuration(greenTotal),
+                        breakValue: formatDuration(redTotal)
                     )
-                    
-                    Spacer()
-                    
-                    PrimaryCapsuleButton(title: "导出小卡", systemImage: "square.and.arrow.up", style: .warm) {
-                        showExportSheet = true
-                    }
-                    
-                    Picker("Period", selection: $selectedPeriod) {
-                        ForEach(StatsPeriod.allCases, id: \.self) { period in
-                            Text(period.rawValue).tag(period)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .frame(width: 200)
-                    .padding(4)
-                    .background(Material.thin)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(AppTheme.Colors.surfaceStroke, lineWidth: 1)
-                    )
-                }
-                .padding(.horizontal)
-                
-                // Main Stats Ring
-                ZStack {
-                    Circle()
-                        .stroke(Color.gray.opacity(0.2), lineWidth: 20)
+                    metricBoard
 
-                    Circle()
-                        .trim(from: clampedFocusRatio, to: 1)
-                        .stroke(
-                            AngularGradient(
-                                colors: [AppTheme.Colors.warmOrange.opacity(0.9), AppTheme.Colors.warmOrange.opacity(0.65)],
-                                center: .center
-                            ),
-                            style: StrokeStyle(lineWidth: 20, lineCap: .round)
-                        )
-                        .rotationEffect(.degrees(-90))
+                    rhythmCard
 
-                    Circle()
-                        .trim(from: 0, to: clampedFocusRatio)
-                        .stroke(
-                            AngularGradient(colors: [AppTheme.Colors.focusMintSoft, AppTheme.Colors.focusMintSoft.opacity(0.7)], center: .center),
-                            style: StrokeStyle(lineWidth: 20, lineCap: .round)
-                        )
-                        .rotationEffect(.degrees(-90))
-                        .animation(.spring(), value: focusRatio)
-                    
-                    VStack {
-                        Text(formatDuration(greenTotal))
-                            .font(.system(size: 42, weight: .bold, design: .rounded))
-                            .foregroundColor(AppTheme.Colors.focusMintSoft)
-                        Text("专注时长")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
+                    if dailyTrend.count > 1 {
+                        trendCard
                     }
-                }
-                .frame(width: 220, height: 220)
-                .padding(.top, 10)
-                
-                // Metric Cards
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                    MetricCard(title: "休息时长", value: formatDuration(redTotal), color: AppTheme.Colors.warmOrange)
-                    MetricCard(title: "专注比例", value: String(format: "%.0f%%", focusRatio * 100), color: .teal)
-                    MetricCard(title: "平均专注", value: formatDuration(avgStreak), color: AppTheme.Colors.focusMintSoft)
-                    MetricCard(title: "最长专注", value: formatDuration(maxStreak), color: .green)
-                }
-                .padding(.horizontal)
 
-                // Rhythm / Insight Cards (Focus analysis + gentle feedback)
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text("节奏")
-                            .font(.headline)
-                        Spacer()
-                        Text(rhythmSubtitle)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.horizontal)
+                    analysisCard
 
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                        InsightCard(
-                            title: "段数",
-                            value: "\(focusBlocks) 专注 · \(breakBlocks) 休息",
-                            systemImage: "rectangle.split.3x1",
-                            tint: AppTheme.Colors.focusMintSoft
-                        )
-                        InsightCard(
-                            title: "平均休息",
-                            value: avgBreak > 0 ? formatDuration(avgBreak) : "—",
-                            systemImage: "cup.and.saucer.fill",
-                            tint: AppTheme.Colors.warmOrange
-                        )
-                        InsightCard(
-                            title: "误触回滚",
-                            value: pendingCount > 0 ? "\(rollbackCount) / \(pendingCount)" : "—",
-                            systemImage: "arrow.uturn.backward.circle.fill",
-                            tint: .orange
-                        )
-                        InsightCard(
-                            title: "切换次数",
-                            value: "\(switchCount)",
-                            systemImage: "arrow.left.and.right",
-                            tint: .teal
-                        )
+                    if !moodCounts.isEmpty {
+                        moodCard
                     }
-                    .padding(.horizontal)
-                }
-                
-                // Trend Chart
-                if dailyTrend.count > 1 {
-                    VStack(alignment: .leading) {
-                        Text("趋势")
-                            .font(.headline)
-                            .padding(.horizontal)
-                        
-                        Chart(stackedTrendPoints) { point in
-                            BarMark(
-                                x: .value("日期", point.date, unit: .day),
-                                y: .value("小时", point.hours)
-                            )
-                            .foregroundStyle(by: .value("类型", point.type))
-                        }
-                        .frame(height: 150)
-                        .padding(.horizontal)
-                        .chartYAxisLabel("小时")
-                        .chartForegroundStyleScale([
-                            "专注": AnyShapeStyle(AppTheme.Colors.focusMintSoft.gradient),
-                            "休息": AnyShapeStyle(AppTheme.Colors.warmOrange.opacity(0.9))
-                        ])
-                        .chartLegend(position: .top, alignment: .leading)
-                    }
-                }
 
-                // Analysis Section
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text(analysisTitle)
-                            .font(.headline)
-                        Spacer()
-                        Text(analysisSubtitle)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.horizontal)
-
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                        ForEach(analysisItems) { item in
-                            InsightCard(
-                                title: item.title,
-                                value: item.value,
-                                systemImage: item.systemImage,
-                                tint: item.tint
-                            )
-                        }
-                    }
-                    .padding(.horizontal)
+                    sessionListCard
                 }
-
-                // Emotion (optional, based on reflection events)
-                if !moodCounts.isEmpty {
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack {
-                            Text("心情")
-                                .font(.headline)
-                            Spacer()
-                            Text("可选记录，用于理解节奏")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding(.horizontal)
-                        
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 10) {
-                                ForEach(moodCounts) { item in
-                                    MoodChip(mood: item.mood, count: item.count)
-                                }
-                            }
-                            .padding(.horizontal)
-                        }
-                        
-                        Text(moodInsightLine)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .padding(.horizontal)
-                    }
-                }
-                
-                // Session List
-                VStack(alignment: .leading) {
-                    Text(sessionListTitle)
-                        .font(.headline)
-                        .padding(.horizontal)
-                    
-                    if dailySessions.isEmpty {
-                        Text("\(sessionListTitle)暂无记录")
-                            .foregroundColor(.secondary)
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    } else {
-                        LazyVStack(spacing: 12) {
-                            ForEach(dailySessions) { session in
-                                SessionCard(session: session)
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-                }
+                .padding(.horizontal, 16)
+                .padding(.top, 18)
+                .padding(.bottom, 24)
             }
-            .padding(.vertical)
         }
-        .frame(minWidth: 500, minHeight: 650)
+        .frame(minWidth: 640, minHeight: 780)
         .onAppear {
             eventStore.reload()
         }
@@ -335,13 +154,274 @@ struct DashboardView: View {
                 }
             )
         }
-        .alert("导出失败", isPresented: Binding(
+        .alert(L10n.string("导出失败"), isPresented: Binding(
             get: { exportError != nil },
             set: { _ in exportError = nil }
         )) {
-            Button("OK", role: .cancel) {}
+            Button(L10n.string("OK"), role: .cancel) {}
         } message: {
             Text(exportError ?? "")
+        }
+    }
+
+    private var dashboardBackground: some View {
+        LinearGradient(
+            colors: [AppTheme.Colors.dashboardBackgroundTop, AppTheme.Colors.dashboardBackgroundBottom],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .overlay(alignment: .topLeading) {
+            Circle()
+                .fill(AppTheme.Colors.dashboardHeroGlow)
+                .frame(width: 240, height: 240)
+                .blur(radius: 34)
+                .offset(x: -78, y: -84)
+        }
+        .overlay(alignment: .bottomTrailing) {
+            Circle()
+                .fill(AppTheme.Colors.dashboardHeroGlowWarm)
+                .frame(width: 300, height: 300)
+                .blur(radius: 40)
+                .offset(x: 92, y: 84)
+        }
+    }
+
+    private var dashboardHeader: some View {
+        GlassCard(padding: 14, variant: .subtle) {
+            HStack(spacing: 12) {
+                StickerHeader(
+                    imageName: "focus",
+                    title: "专注复盘",
+                    subtitle: periodSubtitle,
+                    style: .leading,
+                    iconSize: 34
+                )
+
+                Spacer(minLength: 8)
+
+                Picker("", selection: $selectedPeriod) {
+                    ForEach(StatsPeriod.allCases, id: \.self) { period in
+                        Text(period.title).tag(period)
+                    }
+                }
+                .id("dashboard-period-\(settings.appLanguage.rawValue)")
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .accessibilityLabel(Text(L10n.string("Period")))
+                .frame(width: 236)
+                .padding(4)
+                .background(AppTheme.Colors.dashboardSurfaceStrong)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(AppTheme.Colors.dashboardSurfaceStroke, lineWidth: 1)
+                )
+
+                PrimaryCapsuleButton(title: "导出小卡", systemImage: "square.and.arrow.up", style: .warm) {
+                    showExportSheet = true
+                }
+            }
+        }
+    }
+
+    private var metricBoard: some View {
+        GlassCard(padding: 0, variant: .subtle) {
+            VStack(spacing: 0) {
+                HStack(spacing: 0) {
+                    metricQuadrant(
+                        title: "休息时长",
+                        value: formatDuration(redTotal),
+                        valueColor: AppTheme.Colors.dashboardBreak
+                    )
+                    Divider()
+                        .background(AppTheme.Colors.dashboardDivider)
+                    metricQuadrant(
+                        title: "专注比例",
+                        value: String(format: "%.0f%%", focusRatio * 100),
+                        valueColor: AppTheme.Colors.dashboardFocus
+                    )
+                }
+
+                Divider()
+                    .background(AppTheme.Colors.dashboardDivider)
+
+                HStack(spacing: 0) {
+                    metricQuadrant(
+                        title: "平均专注",
+                        value: formatDuration(avgStreak),
+                        valueColor: AppTheme.Colors.dashboardFocusDeep
+                    )
+                    Divider()
+                        .background(AppTheme.Colors.dashboardDivider)
+                    metricQuadrant(
+                        title: "最长专注",
+                        value: formatDuration(maxStreak),
+                        valueColor: AppTheme.Colors.dashboardFocus
+                    )
+                }
+            }
+        }
+    }
+
+    private func metricQuadrant(title: String, value: String, valueColor: Color) -> some View {
+        VStack(spacing: 8) {
+            Text(L10n.string(title))
+                .font(.title3.weight(.medium))
+                .foregroundColor(AppTheme.Colors.dashboardTextPrimary)
+            Text(value)
+                .font(.system(size: 44, weight: .bold, design: .rounded).monospacedDigit())
+                .minimumScaleFactor(0.7)
+                .lineLimit(1)
+                .foregroundColor(valueColor)
+        }
+        .frame(maxWidth: .infinity, minHeight: 188)
+        .padding(.horizontal, 20)
+    }
+
+    private var rhythmCard: some View {
+        GlassCard(padding: 14, variant: .subtle) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text(L10n.string("节奏"))
+                        .font(.headline)
+                        .foregroundColor(AppTheme.Colors.dashboardTextPrimary)
+                    Spacer()
+                    Text(rhythmSubtitle)
+                        .font(.caption)
+                        .foregroundColor(AppTheme.Colors.dashboardTextSecondary)
+                }
+
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                    InsightCard(
+                        title: "段数",
+                        value: L10n.string("%d %@ · %d %@", focusBlocks, L10n.string("专注"), breakBlocks, L10n.string("休息")),
+                        systemImage: "rectangle.split.3x1",
+                        tint: AppTheme.Colors.dashboardFocusDeep
+                    )
+                    InsightCard(
+                        title: "平均休息",
+                        value: avgBreak > 0 ? formatDuration(avgBreak) : L10n.string("—"),
+                        systemImage: "cup.and.saucer.fill",
+                        tint: AppTheme.Colors.dashboardBreak
+                    )
+                    InsightCard(
+                        title: "误触回滚",
+                        value: pendingCount > 0 ? "\(rollbackCount) / \(pendingCount)" : L10n.string("—"),
+                        systemImage: "arrow.uturn.backward.circle.fill",
+                        tint: .orange
+                    )
+                    InsightCard(
+                        title: "切换次数",
+                        value: "\(switchCount)",
+                        systemImage: "arrow.left.and.right",
+                        tint: AppTheme.Colors.dashboardFocus
+                    )
+                }
+            }
+        }
+    }
+
+    private var trendCard: some View {
+        GlassCard(padding: 14, variant: .subtle) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(L10n.string("趋势"))
+                    .font(.headline)
+                    .foregroundColor(AppTheme.Colors.dashboardTextPrimary)
+
+                Chart(stackedTrendPoints) { point in
+                    BarMark(
+                        x: .value(L10n.string("日期"), point.date, unit: .day),
+                        y: .value(L10n.string("小时"), point.hours)
+                    )
+                    .foregroundStyle(by: .value(L10n.string("类型"), point.type))
+                }
+                .frame(height: 154)
+                .chartYAxisLabel(L10n.string("小时"))
+                .chartForegroundStyleScale([
+                    focusSeriesLabel: AnyShapeStyle(AppTheme.Colors.dashboardFocusDeep.gradient),
+                    breakSeriesLabel: AnyShapeStyle(AppTheme.Colors.dashboardBreak.opacity(0.9))
+                ])
+                .chartLegend(position: .top, alignment: .leading)
+            }
+        }
+    }
+
+    private var analysisCard: some View {
+        GlassCard(padding: 14, variant: .subtle) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text(analysisTitle)
+                        .font(.headline)
+                        .foregroundColor(AppTheme.Colors.dashboardTextPrimary)
+                    Spacer()
+                    Text(analysisSubtitle)
+                        .font(.caption)
+                        .foregroundColor(AppTheme.Colors.dashboardTextSecondary)
+                }
+
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                    ForEach(analysisItems) { item in
+                        InsightCard(
+                            title: item.title,
+                            value: item.value,
+                            systemImage: item.systemImage,
+                            tint: item.tint
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private var moodCard: some View {
+        GlassCard(padding: 14, variant: .subtle) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text(L10n.string("心情"))
+                        .font(.headline)
+                        .foregroundColor(AppTheme.Colors.dashboardTextPrimary)
+                    Spacer()
+                    Text(L10n.string("可选记录，用于理解节奏"))
+                        .font(.caption)
+                        .foregroundColor(AppTheme.Colors.dashboardTextSecondary)
+                }
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(moodCounts) { item in
+                            MoodChip(mood: item.mood, count: item.count)
+                        }
+                    }
+                }
+
+                Text(moodInsightLine)
+                    .font(.caption)
+                    .foregroundColor(AppTheme.Colors.dashboardTextSecondary)
+            }
+        }
+    }
+
+    private var sessionListCard: some View {
+        GlassCard(padding: 14, variant: .subtle) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(sessionListTitle)
+                    .font(.headline)
+                    .foregroundColor(AppTheme.Colors.dashboardTextPrimary)
+
+                if dailySessions.isEmpty {
+                    Text(L10n.string("%@暂无记录", sessionListTitle))
+                        .font(.caption)
+                        .foregroundColor(AppTheme.Colors.dashboardTextSecondary)
+                        .padding(.vertical, 6)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else {
+                    LazyVStack(spacing: 10) {
+                        ForEach(dailySessions) { session in
+                            SessionCard(session: session)
+                        }
+                    }
+                }
+            }
         }
     }
     
@@ -410,10 +490,6 @@ struct DashboardView: View {
         return greenTotal / total
     }
 
-    private var clampedFocusRatio: Double {
-        min(max(focusRatio, 0), 1)
-    }
-
     private var focusBlocks: Int {
         filteredSegments.filter { $0.type == .green }.count
     }
@@ -442,12 +518,12 @@ struct DashboardView: View {
     private var rhythmSubtitle: String {
         if pendingCount > 0 && rollbackCount > 0 {
             let rate = Double(rollbackCount) / Double(pendingCount)
-            return String(format: "误触回滚 %.0f%%", rate * 100)
+            return L10n.string("误触回滚 %.0f%%", rate * 100)
         }
         if focusBlocks + breakBlocks > 0 {
-            return "看见节奏，而不是评判"
+            return L10n.string("看见节奏，而不是评判")
         }
-        return "从一次专注开始"
+        return L10n.string("从一次专注开始")
     }
 
     private var totalDaysInRange: Int {
@@ -472,7 +548,7 @@ struct DashboardView: View {
 
     private var bestFocusDayLabel: String {
         guard let best = dailyTrend.max(by: { $0.greenTotal < $1.greenTotal }),
-              best.greenTotal > 0 else { return "—" }
+              best.greenTotal > 0 else { return L10n.string("—") }
         let formatter = DateFormatter()
         formatter.dateFormat = "M/d"
         return formatter.string(from: best.date)
@@ -480,7 +556,7 @@ struct DashboardView: View {
 
     private var breakRatioPercent: String {
         let total = greenTotal + redTotal
-        guard total > 0 else { return "—" }
+        guard total > 0 else { return L10n.string("—") }
         return String(format: "%.0f%%", (redTotal / total) * 100)
     }
 
@@ -503,7 +579,7 @@ struct DashboardView: View {
         }
 
         guard let best = buckets.max(by: { $0.value < $1.value }), best.value > 0 else {
-            return "—"
+            return L10n.string("—")
         }
         let next = (best.key + 1) % 24
         return String(format: "%02d:00-%02d:00", best.key, next)
@@ -519,18 +595,18 @@ struct DashboardView: View {
 
     private var analysisTitle: String {
         switch selectedPeriod {
-        case .day: return "当日分析"
-        case .week: return "本周分析"
-        case .month: return "本月分析"
-        case .year: return "年度分析"
+        case .day: return L10n.string("当日分析")
+        case .week: return L10n.string("本周分析")
+        case .month: return L10n.string("本月分析")
+        case .year: return L10n.string("年度分析")
         }
     }
 
     private var analysisSubtitle: String {
         if greenTotal + redTotal == 0 {
-            return "暂无数据"
+            return L10n.string("暂无数据")
         }
-        return "关注节奏与恢复"
+        return L10n.string("关注节奏与恢复")
     }
 
     private var analysisItems: [AnalysisItem] {
@@ -571,16 +647,16 @@ struct DashboardView: View {
     }
 
     private var moodInsightLine: String {
-        guard let top = moodCounts.first else { return "每一次记录都是一次更懂自己的开始。" }
+        guard let top = moodCounts.first else { return L10n.string("每一次记录都是一次更懂自己的开始。") }
         switch top.mood {
         case .calm:
-            return "你更常选择「平静」。继续维持这个节奏就很好。"
+            return L10n.string("你更常选择「平静」。继续维持这个节奏就很好。")
         case .good:
-            return "你更常选择「满足」。把有效的节奏留给自己。"
+            return L10n.string("你更常选择「满足」。把有效的节奏留给自己。")
         case .stressed:
-            return "你更常选择「焦虑」。下次试试把第一段专注缩短一点。"
+            return L10n.string("你更常选择「焦虑」。下次试试把第一段专注缩短一点。")
         case .tired:
-            return "你更常选择「疲惫」。给自己留一点恢复空间也很重要。"
+            return L10n.string("你更常选择「疲惫」。给自己留一点恢复空间也很重要。")
         }
     }
 
@@ -596,28 +672,13 @@ struct DashboardView: View {
         let hours = Int(interval) / 3600
         let minutes = Int(interval) / 60 % 60
         if hours > 0 {
-            return String(format: "%dh %02dm", hours, minutes)
+            return L10n.string("%dh %02dm", hours, minutes)
         } else {
             let seconds = Int(interval) % 60
             return String(format: "%02d:%02d", minutes, seconds)
         }
     }
     
-    private func colorFor(_ type: EventType) -> Color {
-        switch type {
-        case .sessionStart, .switchToGreen, .cancelRedPending:
-            return .green
-        case .enterRedPending:
-            return .orange
-        case .confirmRedStart:
-            return .red
-        case .sessionEnd:
-            return .gray
-        case .sessionReflection:
-            return .blue
-        }
-    }
-
     private var dateRangeLabel: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "M/d"
@@ -645,10 +706,10 @@ struct DashboardView: View {
             avgStreak: avgStreak,
             maxStreak: maxStreak,
             rhythmItems: [
-                ("段数", "\(focusBlocks) 专注 · \(breakBlocks) 休息"),
-                ("平均休息", avgBreak > 0 ? formatDuration(avgBreak) : "—"),
-                ("误触回滚", pendingCount > 0 ? "\(rollbackCount) / \(pendingCount)" : "—"),
-                ("切换次数", "\(switchCount)")
+                (L10n.string("段数"), L10n.string("%d %@ · %d %@", focusBlocks, L10n.string("专注"), breakBlocks, L10n.string("休息"))),
+                (L10n.string("平均休息"), avgBreak > 0 ? formatDuration(avgBreak) : L10n.string("—")),
+                (L10n.string("误触回滚"), pendingCount > 0 ? "\(rollbackCount) / \(pendingCount)" : L10n.string("—")),
+                (L10n.string("切换次数"), "\(switchCount)")
             ],
             analysisItems: analysisItems.map { ($0.title, $0.value) },
             moodItems: moodCounts.map { ($0.mood.title, $0.count) },
@@ -661,13 +722,13 @@ struct DashboardView: View {
         renderer.proposedSize = exportOptions.proposedSize
 
         guard let nsImage = renderer.nsImage else {
-            exportError = "无法生成图片"
+            exportError = L10n.string("无法生成图片")
             return
         }
 
         let panel = NSSavePanel()
         panel.allowedContentTypes = [UTType.png]
-        panel.nameFieldStringValue = "FocusOrb-\(analysisTitle)-\(exportDateString()).png"
+        panel.nameFieldStringValue = L10n.string("FocusOrb-%@-%@.png", analysisTitle, exportDateString())
 
         let response = panel.runModal()
         guard response == .OK, let url = panel.url else { return }
@@ -675,14 +736,14 @@ struct DashboardView: View {
         guard let tiff = nsImage.tiffRepresentation,
               let rep = NSBitmapImageRep(data: tiff),
               let data = rep.representation(using: .png, properties: [:]) else {
-            exportError = "导出失败"
+            exportError = L10n.string("导出失败")
             return
         }
 
         do {
             try data.write(to: url)
         } catch {
-            exportError = "写入失败：\(error.localizedDescription)"
+            exportError = L10n.string("写入失败：%@", error.localizedDescription)
         }
     }
 
@@ -696,20 +757,20 @@ struct DashboardView: View {
         // 洞察型：具体、可执行、不过度情绪化
         switch selectedPeriod {
         case .day:
-            if greenTotal + redTotal == 0 { return "从一次专注开始，系统会自动生成你的节奏洞察。" }
+            if greenTotal + redTotal == 0 { return L10n.string("从一次专注开始，系统会自动生成你的节奏洞察。") }
             let peak = peakFocusHourLabel()
-            if peak != "—" && switchCount >= 10 {
-                return "你在 \(peak) 更容易进入状态。今天切换 \(switchCount) 次，试试把第一段专注缩短到 15–20 分钟。"
+            if peak != L10n.string("—") && switchCount >= 10 {
+                return L10n.string("你在 %@ 更容易进入状态。今天切换 %d 次，试试把第一段专注缩短到 15–20 分钟。", peak, switchCount)
             }
-            if peak != "—" {
-                return "你在 \(peak) 更容易进入状态。把重要任务放到这个窗口，会更省力。"
+            if peak != L10n.string("—") {
+                return L10n.string("你在 %@ 更容易进入状态。把重要任务放到这个窗口，会更省力。", peak)
             }
-            return "今天的节奏已经被记录下来。明天也可以从一个更短的专注段开始。"
+            return L10n.string("今天的节奏已经被记录下来。明天也可以从一个更短的专注段开始。")
         case .week, .month, .year:
-            if greenTotal + redTotal == 0 { return "这段时间暂无记录。开始一次专注就能生成趋势与洞察。" }
+            if greenTotal + redTotal == 0 { return L10n.string("这段时间暂无记录。开始一次专注就能生成趋势与洞察。") }
             let best = bestFocusDayLabel
             let avg = formatDuration(avgFocusPerDay)
-            return "最专注的一天是 \(best)，平均每天专注 \(avg)。把这个节奏复制到下周，会更稳。"
+            return L10n.string("最专注的一天是 %@，平均每天专注 %@。把这个节奏复制到下周，会更稳。", best, avg)
         }
     }
 }
@@ -718,21 +779,12 @@ struct DashboardView: View {
 
 private struct DashboardExportOptions {
     enum VisualStyle: String, CaseIterable, Identifiable {
-        case fresh = "小清新"
-        case dopamine = "多巴胺"
-        case cyber = "高科技"
-        case classicDark = "高级暗色"
+        case orb = "悬浮窗同款"
 
         var id: String { rawValue }
+        var title: String { L10n.string(rawValue) }
 
-        var isOpaque: Bool {
-            switch self {
-            case .fresh, .dopamine:
-                return true
-            case .cyber, .classicDark:
-                return true
-            }
-        }
+        var isOpaque: Bool { true }
     }
 
     enum Template: String, CaseIterable, Identifiable {
@@ -741,12 +793,14 @@ private struct DashboardExportOptions {
         case story9x16 = "9:16"
         case square1x1 = "1:1"
         var id: String { rawValue }
+        var title: String { L10n.string(rawValue) }
     }
 
     enum Density: String, CaseIterable, Identifiable {
         case comfy = "舒展"
         case compact = "紧凑"
         var id: String { rawValue }
+        var title: String { L10n.string(rawValue) }
     }
 
     enum CaptionMode: String, CaseIterable, Identifiable {
@@ -754,6 +808,7 @@ private struct DashboardExportOptions {
         case `default` = "默认洞察"
         case custom = "自定义"
         var id: String { rawValue }
+        var title: String { L10n.string(rawValue) }
 
         func resolvedText(custom: String, fallback: String) -> String? {
             switch self {
@@ -771,12 +826,14 @@ private struct DashboardExportOptions {
         case top = "顶部"
         case bottom = "底部"
         var id: String { rawValue }
+        var title: String { L10n.string(rawValue) }
     }
 
     enum ExportScale: String, CaseIterable, Identifiable {
         case x2 = "2x"
         case x3 = "3x"
         var id: String { rawValue }
+        var title: String { L10n.string(rawValue) }
 
         var value: CGFloat {
             switch self {
@@ -786,7 +843,7 @@ private struct DashboardExportOptions {
         }
     }
 
-    var visualStyle: VisualStyle = .fresh
+    var visualStyle: VisualStyle = .orb
     var template: Template = .long
     var density: Density = .comfy
 
@@ -835,55 +892,50 @@ private struct DashboardExportSheet: View {
     var body: some View {
         VStack(spacing: 16) {
             HStack {
-                Text("导出小卡")
+                Text(L10n.string("导出小卡"))
                     .font(.headline)
                 Spacer()
-                Text("如果内容超出比例，会建议改用长图")
+                Text(L10n.string("如果内容超出比例，会建议改用长图"))
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(AppTheme.Colors.dashboardTextSecondary)
             }
 
             Form {
-                Picker("风格", selection: $options.visualStyle) {
-                    ForEach(DashboardExportOptions.VisualStyle.allCases) { style in
-                        Text(style.rawValue).tag(style)
-                    }
-                }
-                Picker("版式", selection: $options.template) {
+                Picker(L10n.string("版式"), selection: $options.template) {
                     ForEach(DashboardExportOptions.Template.allCases) { template in
-                        Text(template.rawValue).tag(template)
+                        Text(template.title).tag(template)
                     }
                 }
-                Picker("密度", selection: $options.density) {
+                Picker(L10n.string("密度"), selection: $options.density) {
                     ForEach(DashboardExportOptions.Density.allCases) { density in
-                        Text(density.rawValue).tag(density)
+                        Text(density.title).tag(density)
                     }
                 }
-                Picker("清晰度", selection: $options.exportScale) {
+                Picker(L10n.string("清晰度"), selection: $options.exportScale) {
                     ForEach(DashboardExportOptions.ExportScale.allCases) { s in
-                        Text(s.rawValue).tag(s)
+                        Text(s.title).tag(s)
                     }
                 }
 
-                Section("内容") {
-                    Toggle("标题与品牌", isOn: $options.showTitle)
-                    Toggle("日期范围", isOn: $options.showDateRange)
-                    Toggle("主视觉（专注/比例）", isOn: $options.showHero)
-                    Toggle("节奏", isOn: $options.showRhythm)
-                    Toggle("分析", isOn: $options.showAnalysis)
-                    Toggle("心情", isOn: $options.showMood)
-                    Toggle("趋势图", isOn: $options.showTrend)
+                Section(L10n.string("内容")) {
+                    Toggle(L10n.string("标题与品牌"), isOn: $options.showTitle)
+                    Toggle(L10n.string("日期范围"), isOn: $options.showDateRange)
+                    Toggle(L10n.string("主视觉（专注/比例）"), isOn: $options.showHero)
+                    Toggle(L10n.string("节奏"), isOn: $options.showRhythm)
+                    Toggle(L10n.string("分析"), isOn: $options.showAnalysis)
+                    Toggle(L10n.string("心情"), isOn: $options.showMood)
+                    Toggle(L10n.string("趋势图"), isOn: $options.showTrend)
                 }
 
-                Section("句子") {
-                    Picker("句子", selection: $options.captionMode) {
+                Section(L10n.string("句子")) {
+                    Picker(L10n.string("句子"), selection: $options.captionMode) {
                         ForEach(DashboardExportOptions.CaptionMode.allCases) { mode in
-                            Text(mode.rawValue).tag(mode)
+                            Text(mode.title).tag(mode)
                         }
                     }
-                    Picker("位置", selection: $options.captionPosition) {
+                    Picker(L10n.string("位置"), selection: $options.captionPosition) {
                         ForEach(DashboardExportOptions.CaptionPosition.allCases) { pos in
-                            Text(pos.rawValue).tag(pos)
+                            Text(pos.title).tag(pos)
                         }
                     }
                     if options.captionMode == .custom {
@@ -893,16 +945,33 @@ private struct DashboardExportSheet: View {
                 }
             }
             .frame(width: 460)
+            .tint(AppTheme.Colors.dashboardFocusDeep)
+            .scrollContentBackground(.hidden)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(AppTheme.Colors.dashboardSurfaceStrong)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(AppTheme.Colors.dashboardSurfaceStroke, lineWidth: 1)
+            )
 
             HStack {
                 Spacer()
-                Button("取消", action: onCancel)
-                Button("导出", action: onExport)
+                Button(L10n.string("取消"), action: onCancel)
+                Button(L10n.string("导出"), action: onExport)
                     .keyboardShortcut(.defaultAction)
             }
         }
         .padding(20)
         .frame(width: 520)
+        .background(
+            LinearGradient(
+                colors: [AppTheme.Colors.dashboardBackgroundTop, AppTheme.Colors.dashboardBackgroundBottom],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
     }
 }
 
@@ -930,91 +999,13 @@ private struct DashboardExportCardView: View {
 
     var body: some View {
         ZStack {
-            background
+            OrbExportBackground(cornerRadius: 28)
             exportLongCard
         }
     }
 
-    @ViewBuilder
-    private var background: some View {
-        RoundedRectangle(cornerRadius: 28, style: .continuous)
-            .fill(backgroundFill)
-            .overlay(backgroundHighlights)
-    }
-
-    private var backgroundFill: AnyShapeStyle {
-        switch options.visualStyle {
-        case .fresh:
-            return AnyShapeStyle(
-                LinearGradient(
-                    colors: [
-                        Color(red: 0.93, green: 0.98, blue: 0.97),
-                        Color(red: 0.90, green: 0.95, blue: 0.99),
-                        Color(red: 0.96, green: 0.94, blue: 0.99)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-        case .dopamine:
-            return AnyShapeStyle(
-                LinearGradient(
-                    colors: [
-                        Color(red: 1.00, green: 0.92, blue: 0.96),
-                        Color(red: 0.94, green: 0.97, blue: 1.00),
-                        Color(red: 1.00, green: 0.96, blue: 0.90)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-        case .cyber:
-            return AnyShapeStyle(
-                LinearGradient(
-                    colors: [
-                        Color(red: 0.04, green: 0.06, blue: 0.10),
-                        Color(red: 0.03, green: 0.10, blue: 0.14),
-                        Color(red: 0.02, green: 0.04, blue: 0.08)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-        case .classicDark:
-            return AnyShapeStyle(
-                LinearGradient(
-                    colors: [
-                        Color(red: 0.10, green: 0.11, blue: 0.12),
-                        Color(red: 0.06, green: 0.07, blue: 0.08)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-        }
-    }
-
-    private var backgroundHighlights: some View {
-        ZStack {
-            RadialGradient(
-                colors: [Color.white.opacity(options.visualStyle == .cyber ? 0.10 : 0.55), .clear],
-                center: .topLeading,
-                startRadius: 10,
-                endRadius: 240
-            )
-            RadialGradient(
-                colors: [Color.white.opacity(options.visualStyle == .cyber ? 0.06 : 0.40), .clear],
-                center: .bottomTrailing,
-                startRadius: 20,
-                endRadius: 260
-            )
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .stroke(Color.white.opacity(options.visualStyle == .cyber ? 0.10 : 0.25), lineWidth: 1)
-        }
-    }
-
     private var exportLongCard: some View {
-        VStack(alignment: .leading, spacing: options.density == .comfy ? 16 : 12) {
+        VStack(alignment: .leading, spacing: options.density == .comfy ? 14 : 10) {
             if options.showTitle || options.showDateRange {
                 headerBlock
             }
@@ -1059,7 +1050,7 @@ private struct DashboardExportCardView: View {
             if options.showTitle {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("FocusOrb")
+                        Text(L10n.string("FocusOrb"))
                             .font(.caption.weight(.semibold))
                             .foregroundColor(secondaryText)
                         Text(periodTitle)
@@ -1067,9 +1058,9 @@ private struct DashboardExportCardView: View {
                             .foregroundColor(primaryText)
                     }
                     Spacer()
-                    Image(systemName: options.visualStyle == .cyber ? "dot.radiowaves.left.and.right" : "sparkles")
+                    Image(systemName: "sparkles")
                         .font(.title3)
-                        .foregroundColor(accent)
+                        .foregroundColor(AppTheme.Colors.dashboardBreak)
                 }
             }
             if options.showDateRange {
@@ -1081,169 +1072,153 @@ private struct DashboardExportCardView: View {
     }
 
     private func captionBlock(_ text: String) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            Image(systemName: "quote.bubble.fill")
-                .foregroundColor(accent.opacity(0.9))
-                .font(.callout)
-                .padding(.top, 1)
-            Text(text)
-                .font(.callout)
-                .foregroundColor(primaryText)
-                .fixedSize(horizontal: false, vertical: true)
+        OrbExportSurface(padding: 12, cornerRadius: 16) {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "quote.bubble.fill")
+                    .foregroundColor(AppTheme.Colors.dashboardBreak)
+                    .font(.callout)
+                    .padding(.top, 1)
+                Text(text)
+                    .font(.callout)
+                    .foregroundColor(primaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
-        .padding(12)
-        .background(surface)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(stroke, lineWidth: 1)
-        )
     }
 
     private var heroBlock: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                Circle()
-                    .stroke(stroke.opacity(0.9), lineWidth: 12)
-                Circle()
-                    .trim(from: 0, to: focusRatio)
-                    .stroke(
-                        AngularGradient(colors: [accent.opacity(0.75), accent], center: .center),
-                        style: StrokeStyle(lineWidth: 12, lineCap: .round)
-                    )
-                    .rotationEffect(.degrees(-90))
-                VStack(spacing: 2) {
-                    Text(formatDuration(greenTotal))
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .monospacedDigit()
-                        .foregroundColor(primaryText)
-                    Text("专注时长")
-                        .font(.caption2)
-                        .foregroundColor(secondaryText)
-                }
-            }
-            .frame(width: 120, height: 120)
+        OrbExportSurface(padding: 14, cornerRadius: 20, emphasized: true) {
+            HStack(spacing: 14) {
+                let clampedRatio = min(max(focusRatio, 0), 1)
 
-            VStack(alignment: .leading, spacing: 10) {
-                pillMetric("休息", formatDuration(redTotal))
-                pillMetric("专注比例", String(format: "%.0f%%", focusRatio * 100))
-                HStack(spacing: 10) {
-                    pillMetric("平均专注", formatDuration(avgStreak))
-                    pillMetric("最长专注", formatDuration(maxStreak))
+                ZStack {
+                    Circle()
+                        .stroke(AppTheme.Colors.exportSurfaceStroke.opacity(0.90), lineWidth: 12)
+
+                    Circle()
+                        .trim(from: clampedRatio, to: 1)
+                        .stroke(
+                            AngularGradient(
+                                colors: [AppTheme.Colors.dashboardBreak.opacity(0.95), AppTheme.Colors.dashboardBreak.opacity(0.70)],
+                                center: .center
+                            ),
+                            style: StrokeStyle(lineWidth: 12, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(-90))
+
+                    Circle()
+                        .trim(from: 0, to: clampedRatio)
+                        .stroke(
+                            AngularGradient(colors: [accent, accent.opacity(0.76)], center: .center),
+                            style: StrokeStyle(lineWidth: 12, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(-90))
+                    VStack(spacing: 2) {
+                        Text(formatDuration(greenTotal))
+                            .font(.system(size: 24, weight: .bold, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundColor(primaryText)
+                        Text(L10n.string("专注时长"))
+                            .font(.caption2)
+                            .foregroundColor(secondaryText)
+                    }
                 }
+                .frame(width: 120, height: 120)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    pillMetric("休息", formatDuration(redTotal))
+                    pillMetric("专注比例", String(format: "%.0f%%", focusRatio * 100))
+                    HStack(spacing: 10) {
+                        pillMetric("平均专注", formatDuration(avgStreak))
+                        pillMetric("最长专注", formatDuration(maxStreak))
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(14)
-        .background(surface)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(stroke, lineWidth: 1)
-        )
     }
 
     private func sectionGrid(title: String, items: [(String, String)]) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title)
-                .font(.caption.weight(.semibold))
-                .foregroundColor(secondaryText)
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                ForEach(Array(items.prefix(4).enumerated()), id: \.offset) { _, item in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(item.0)
-                            .font(.caption2)
-                            .foregroundColor(secondaryText)
-                        Text(item.1)
-                            .font(.callout.weight(.semibold).monospacedDigit())
-                            .foregroundColor(primaryText)
+        OrbExportSurface(padding: 14, cornerRadius: 20) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(L10n.string(title))
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(secondaryText)
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                    ForEach(Array(items.prefix(4).enumerated()), id: \.offset) { _, item in
+                        OrbExportSurface(padding: 10, cornerRadius: 14) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(L10n.string(item.0))
+                                    .font(.caption2)
+                                    .foregroundColor(secondaryText)
+                                Text(item.1)
+                                    .font(.callout.weight(.semibold).monospacedDigit())
+                                    .foregroundColor(primaryText)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(12)
-                    .background(surfaceSubtle)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(stroke.opacity(0.9), lineWidth: 1)
-                    )
                 }
             }
         }
-        .padding(14)
-        .background(surface)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(stroke, lineWidth: 1)
-        )
     }
 
     private var moodBlock: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("心情")
-                .font(.caption.weight(.semibold))
-                .foregroundColor(secondaryText)
-            HStack(spacing: 10) {
-                ForEach(Array(moodItems.prefix(6).enumerated()), id: \.offset) { _, item in
-                    HStack(spacing: 6) {
-                        Text(item.0)
-                            .font(.caption)
-                            .foregroundColor(primaryText)
-                        Text("×\(item.1)")
-                            .font(.caption2.monospacedDigit())
-                            .foregroundColor(secondaryText)
+        OrbExportSurface(padding: 14, cornerRadius: 20) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(L10n.string("心情"))
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(secondaryText)
+                HStack(spacing: 10) {
+                    ForEach(Array(moodItems.prefix(6).enumerated()), id: \.offset) { _, item in
+                        HStack(spacing: 6) {
+                            Text(item.0)
+                                .font(.caption)
+                                .foregroundColor(primaryText)
+                            Text("×\(item.1)")
+                                .font(.caption2.monospacedDigit())
+                                .foregroundColor(secondaryText)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(AppTheme.Colors.exportSurfaceStrong.opacity(0.92))
+                        .clipShape(Capsule())
+                        .overlay(
+                            Capsule()
+                                .stroke(AppTheme.Colors.exportSurfaceStroke, lineWidth: 1)
+                        )
                     }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(surfaceSubtle)
-                    .clipShape(Capsule())
-                    .overlay(
-                        Capsule()
-                            .stroke(stroke.opacity(0.9), lineWidth: 1)
-                    )
                 }
             }
         }
-        .padding(14)
-        .background(surface)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(stroke, lineWidth: 1)
-        )
     }
 
     private var trendBlock: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("趋势")
-                .font(.caption.weight(.semibold))
-                .foregroundColor(secondaryText)
-            Chart(trendItems) { point in
-                BarMark(
-                    x: .value("日期", point.date, unit: .day),
-                    y: .value("小时", point.hours)
-                )
-                .foregroundStyle(by: .value("类型", point.type))
+        OrbExportSurface(padding: 14, cornerRadius: 20) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(L10n.string("趋势"))
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(secondaryText)
+                Chart(trendItems) { point in
+                    BarMark(
+                        x: .value(L10n.string("日期"), point.date, unit: .day),
+                        y: .value(L10n.string("小时"), point.hours)
+                    )
+                    .foregroundStyle(by: .value(L10n.string("类型"), point.type))
+                }
+                .frame(height: options.density == .comfy ? 160 : 130)
+                .chartForegroundStyleScale([
+                    L10n.string("专注"): AnyShapeStyle(accent.gradient),
+                    L10n.string("休息"): AnyShapeStyle(AppTheme.Colors.dashboardBreak.opacity(0.88))
+                ])
+                .chartLegend(position: .top, alignment: .leading)
             }
-            .frame(height: options.density == .comfy ? 160 : 130)
-            .chartForegroundStyleScale([
-                "专注": AnyShapeStyle(accent.gradient),
-                "休息": AnyShapeStyle(AppTheme.Colors.warmOrange.opacity(options.visualStyle == .fresh ? 0.75 : 0.85))
-            ])
-            .chartLegend(position: .top, alignment: .leading)
         }
-        .padding(14)
-        .background(surface)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(stroke, lineWidth: 1)
-        )
     }
 
     private var footerBlock: some View {
         HStack {
-            Text("FocusOrb · 看见节奏")
+            Text(L10n.string("FocusOrb · 看见节奏"))
                 .font(.caption2)
                 .foregroundColor(secondaryText)
             Spacer()
@@ -1257,7 +1232,7 @@ private struct DashboardExportCardView: View {
 
     private func pillMetric(_ title: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title)
+            Text(L10n.string(title))
                 .font(.caption2)
                 .foregroundColor(secondaryText)
             Text(value)
@@ -1265,115 +1240,35 @@ private struct DashboardExportCardView: View {
                 .foregroundColor(primaryText)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(10)
-        .background(surfaceSubtle)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(AppTheme.Colors.exportSurfaceStrong.opacity(0.92))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(stroke.opacity(0.9), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(AppTheme.Colors.exportSurfaceStroke, lineWidth: 1)
         )
     }
 
     private var accent: Color {
-        switch options.visualStyle {
-        case .fresh:
-            return Color(red: 0.20, green: 0.75, blue: 0.62)
-        case .dopamine:
-            return Color(red: 0.98, green: 0.35, blue: 0.62)
-        case .cyber:
-            return Color(red: 0.20, green: 0.90, blue: 1.00)
-        case .classicDark:
-            return Color(red: 0.42, green: 0.92, blue: 0.72)
-        }
+        AppTheme.Colors.dashboardFocusDeep
     }
 
     private var primaryText: Color {
-        switch options.visualStyle {
-        case .cyber, .classicDark:
-            return Color.white.opacity(0.92)
-        case .fresh, .dopamine:
-            return Color(red: 0.10, green: 0.14, blue: 0.16)
-        }
+        AppTheme.Colors.dashboardTextPrimary
     }
 
     private var secondaryText: Color {
-        switch options.visualStyle {
-        case .cyber, .classicDark:
-            return Color.white.opacity(0.70)
-        case .fresh, .dopamine:
-            return Color(red: 0.30, green: 0.36, blue: 0.40)
-        }
-    }
-
-    private var surface: Color {
-        switch options.visualStyle {
-        case .fresh:
-            return Color.white.opacity(0.78)
-        case .dopamine:
-            return Color.white.opacity(0.72)
-        case .cyber:
-            return Color.white.opacity(0.06)
-        case .classicDark:
-            return Color.white.opacity(0.08)
-        }
-    }
-
-    private var surfaceSubtle: Color {
-        switch options.visualStyle {
-        case .fresh:
-            return Color.white.opacity(0.65)
-        case .dopamine:
-            return Color.white.opacity(0.60)
-        case .cyber:
-            return Color.white.opacity(0.05)
-        case .classicDark:
-            return Color.white.opacity(0.06)
-        }
-    }
-
-    private var stroke: Color {
-        switch options.visualStyle {
-        case .fresh:
-            return Color.white.opacity(0.45)
-        case .dopamine:
-            return Color.white.opacity(0.40)
-        case .cyber:
-            return accent.opacity(0.35)
-        case .classicDark:
-            return Color.white.opacity(0.12)
-        }
+        AppTheme.Colors.dashboardTextSecondary
     }
 
     private func formatDuration(_ interval: TimeInterval) -> String {
         let hours = Int(interval) / 3600
         let minutes = Int(interval) / 60 % 60
         if hours > 0 {
-            return String(format: "%dh %02dm", hours, minutes)
+            return L10n.string("%dh %02dm", hours, minutes)
         } else {
-            return String(format: "%02dm", minutes)
-        }
-    }
-}
-
-// MARK: - Metric Card Component
-
-struct MetricCard: View {
-    let title: String
-    let value: String
-    let color: Color
-    
-    var body: some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(title)
-                    .font(AppTheme.Typography.caption)
-                    .foregroundColor(AppTheme.Colors.textSecondary)
-                Text(value)
-                    .font(.title2.monospacedDigit())
-                    .fontWeight(.semibold)
-                    .foregroundColor(color)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            return L10n.string("%02dm", minutes)
         }
     }
 }
@@ -1384,12 +1279,13 @@ struct SessionCard: View {
     let session: DashboardView.SessionDisplay
     
     var body: some View {
-        GlassCard {
+        GlassCard(variant: .subtle) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text("\(session.startTime, style: .time) - \(session.endTime, style: .time)")
                             .font(.headline)
+                            .foregroundColor(AppTheme.Colors.dashboardTextPrimary)
 
                         if let mood = session.mood {
                             HStack(spacing: 4) {
@@ -1398,29 +1294,37 @@ struct SessionCard: View {
                                 Text(mood.title)
                                     .font(.caption2)
                             }
-                            .foregroundColor(AppTheme.Colors.textSecondary)
+                            .foregroundColor(AppTheme.Colors.dashboardTextSecondary)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Color.secondary.opacity(0.12))
-                            .cornerRadius(6)
-                            .accessibilityLabel(Text("心情：\(mood.title)"))
+                            .background(AppTheme.Colors.dashboardSurfaceStrong.opacity(0.96))
+                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .stroke(AppTheme.Colors.dashboardSurfaceStroke, lineWidth: 1)
+                            )
+                            .accessibilityLabel(Text(L10n.string("心情：%@", mood.title)))
                         }
 
                         // Merge badge
                         if session.mergedCount > 1 {
                             Text("×\(session.mergedCount)")
                                 .font(.caption2)
-                                .foregroundColor(AppTheme.Colors.textSecondary)
+                                .foregroundColor(AppTheme.Colors.dashboardTextSecondary)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(Color.secondary.opacity(0.2))
-                                .cornerRadius(4)
+                                .background(AppTheme.Colors.dashboardSurfaceStrong.opacity(0.96))
+                                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                        .stroke(AppTheme.Colors.dashboardSurfaceStroke, lineWidth: 1)
+                                )
                         }
                     }
 
-                    Text("总计 \(formatDuration(session.totalDuration))")
+                    Text(L10n.string("总计 %@", formatDuration(session.totalDuration)))
                         .font(.caption)
-                        .foregroundColor(AppTheme.Colors.textSecondary)
+                        .foregroundColor(AppTheme.Colors.dashboardTextSecondary)
                 }
 
                 Spacer()
@@ -1431,9 +1335,9 @@ struct SessionCard: View {
                         Text(formatDuration(session.greenDuration))
                             .font(.system(.body, design: .monospaced))
                             .fontWeight(.medium)
-                            .foregroundColor(.primary)
+                            .foregroundColor(AppTheme.Colors.dashboardTextPrimary)
 
-                        Circle().fill(AppTheme.Colors.focusMintSoft).frame(width: 8, height: 8)
+                        Circle().fill(AppTheme.Colors.dashboardFocus).frame(width: 8, height: 8)
                     }
 
                     // Red Time (only if exists)
@@ -1441,9 +1345,9 @@ struct SessionCard: View {
                         HStack(spacing: 6) {
                             Text(formatDuration(session.redDuration))
                                 .font(.system(.caption, design: .monospaced))
-                                .foregroundColor(AppTheme.Colors.textSecondary)
+                                .foregroundColor(AppTheme.Colors.dashboardTextSecondary)
 
-                            Circle().fill(AppTheme.Colors.warmOrange).frame(width: 8, height: 8)
+                            Circle().fill(AppTheme.Colors.dashboardBreak).frame(width: 8, height: 8)
                         }
                     }
                 }
@@ -1455,13 +1359,13 @@ struct SessionCard: View {
         let hours = Int(interval) / 3600
         let minutes = Int(interval) / 60 % 60
         if hours > 0 {
-            return String(format: "%dh %02dm", hours, minutes)
+            return L10n.string("%dh %02dm", hours, minutes)
         } else {
             let seconds = Int(interval) % 60
             if minutes == 0 && seconds > 0 {
-                return "<1m"
+                return L10n.string("<1m")
             }
-            return String(format: "%02dm", minutes)
+            return L10n.string("%02dm", minutes)
         }
     }
 }
@@ -1475,11 +1379,11 @@ struct InsightCard: View {
     let tint: Color
 
     var body: some View {
-        GlassCard(padding: 12) {
+        GlassCard(padding: 12, variant: .subtle) {
             HStack(spacing: 12) {
                 ZStack {
                     Circle()
-                        .fill(tint.opacity(0.18))
+                        .fill(tint.opacity(0.16))
                     Image(systemName: systemImage)
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(tint)
@@ -1487,13 +1391,13 @@ struct InsightCard: View {
                 .frame(width: 32, height: 32)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
+                    Text(L10n.string(title))
                         .font(AppTheme.Typography.caption)
-                        .foregroundColor(AppTheme.Colors.textSecondary)
+                        .foregroundColor(AppTheme.Colors.dashboardTextSecondary)
                     Text(value)
                         .font(.callout.monospacedDigit())
                         .fontWeight(.semibold)
-                        .foregroundColor(AppTheme.Colors.textPrimary)
+                        .foregroundColor(AppTheme.Colors.dashboardTextPrimary)
                 }
                 Spacer(minLength: 0)
             }
@@ -1515,16 +1419,17 @@ struct MoodChip: View {
                 .font(.caption)
             Text("×\(count)")
                 .font(.caption2.monospacedDigit())
-                .foregroundColor(.secondary)
+                .foregroundColor(AppTheme.Colors.dashboardTextSecondary)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(Material.thin)
+        .background(AppTheme.Colors.dashboardSurfaceStrong.opacity(0.92))
         .clipShape(Capsule())
         .overlay(
             Capsule()
-                .stroke(Color.white.opacity(0.10), lineWidth: 1)
+                .stroke(AppTheme.Colors.dashboardSurfaceStroke, lineWidth: 1)
         )
-        .accessibilityLabel(Text("\(mood.title) \(count) 次"))
+        .foregroundColor(AppTheme.Colors.dashboardTextPrimary)
+        .accessibilityLabel(Text(L10n.string("%@ %d 次", mood.title, count)))
     }
 }

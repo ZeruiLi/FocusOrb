@@ -25,7 +25,7 @@ struct PrimaryCapsuleButton: View {
                     Image(systemName: systemImage)
                         .font(.system(size: 14, weight: .semibold))
                 }
-                Text(title)
+                Text(L10n.string(title))
                     .font(.system(.headline, design: .rounded))
             }
             .foregroundColor(.white)
@@ -66,4 +66,3 @@ struct PrimaryCapsuleButton: View {
         }
     }
 }
-

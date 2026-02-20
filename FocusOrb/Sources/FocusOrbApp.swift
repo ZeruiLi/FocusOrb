@@ -5,11 +5,13 @@ import AppKit
 @main
 struct FocusOrbApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @ObservedObject private var settings = AppSettings.shared
     
     var body: some Scene {
         // The Main Dashboard Window (only shown when explicitly opened)
         WindowGroup(id: "dashboard") {
             DashboardView(eventStore: EventStore.shared)
+                .environment(\.locale, settings.locale)
         }
         .windowStyle(.hiddenTitleBar)
         .commands {
@@ -18,6 +20,7 @@ struct FocusOrbApp: App {
         
         Settings {
             SettingsView()
+                .environment(\.locale, settings.locale)
         }
     }
 }
@@ -45,6 +48,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let eventStore = EventStore.shared
         let stateMachine = OrbStateMachine(eventStore: eventStore)
         self.stateMachine = stateMachine
+        _ = CaptureStore.shared
+        ClipboardMonitor.shared.syncWithSettings()
+        syncLaunchAtLoginSetting()
 
         // Best-effort: close an active session on shutdown/power-off.
         powerOffObserver = NSWorkspace.shared.notificationCenter.addObserver(
@@ -69,6 +75,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         endActiveSessionIfNeeded(reason: "terminate")
+        ClipboardMonitor.shared.stop()
         if let powerOffObserver {
             NSWorkspace.shared.notificationCenter.removeObserver(powerOffObserver)
         }
@@ -80,5 +87,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             OrbEvent(type: .sessionEnd, sessionId: sessionId, meta: ["reason": reason])
         )
         RuntimeSessionSnapshotStore.shared.clear()
+    }
+
+    private func syncLaunchAtLoginSetting() {
+        let requested = AppSettings.shared.launchAtLogin
+        if LaunchAtLoginManager.shared.isEnabled != requested {
+            _ = LaunchAtLoginManager.shared.setEnabled(requested)
+        }
+        AppSettings.shared.launchAtLogin = LaunchAtLoginManager.shared.isEnabled
     }
 }

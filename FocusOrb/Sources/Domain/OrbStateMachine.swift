@@ -48,6 +48,8 @@ class OrbStateMachine: ObservableObject {
     }
 
     func startSession() {
+        guard currentSessionId == nil else { return }
+
         let settings = AppSettings.shared
         let sessionId = UUID()
         var parentId: UUID? = nil

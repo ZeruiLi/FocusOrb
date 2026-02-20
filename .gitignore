@@ -3,9 +3,13 @@
 
 # SwiftPM
 .build/
+build/
 Packages/
 *.xcodeproj
 *.xcworkspace
+!FocusOrb/FocusOrb.xcodeproj/
+!FocusOrb/FocusOrb.xcodeproj/**
+FocusOrb/build.zip
 
 # Xcode
 DerivedData/

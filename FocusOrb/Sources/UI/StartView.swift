@@ -15,11 +15,11 @@ struct StartView: View {
 
             GlassCard(padding: 12) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Label("点击切换状态", systemImage: "hand.tap")
+                    Label(L10n.string("点击切换状态"), systemImage: "hand.tap")
                         .font(AppTheme.Typography.body)
-                    Label("长按结束本次", systemImage: "hand.press")
+                    Label(L10n.string("长按结束本次"), systemImage: "hand.press")
                         .font(AppTheme.Typography.body)
-                    Label("绿色→橙色 3秒内可回滚", systemImage: "arrow.uturn.backward")
+                    Label(L10n.string("绿色→橙色 3秒内可回滚"), systemImage: "arrow.uturn.backward")
                         .font(AppTheme.Typography.caption)
                         .foregroundColor(AppTheme.Colors.textSecondary)
                 }

@@ -90,6 +90,11 @@ Just a tiny always-on-top orb.
 - Event-sourcing style event log
 - Stored locally in `~/Library/Application Support/FocusOrb/focusorb.sqlite`
 
+## Product Docs
+
+- App Insights (App-level contextual stats): `docs/app-insights-research.md`, `docs/app-insights-prd.md`, `docs/app-insights-design.md`
+- Notes / Tasks / Clips (UI exploration): `docs/notes-tasks-clips-ux.md` (Top Task HUD + Quick Note/Clips + Drawer spec: `design-system/pages/capture-drawer.md`)
+
 ## Requirements
 
 - macOS 14+
@@ -110,6 +115,27 @@ swift run FocusOrb
 1. Open `FocusOrb/Package.swift` in Xcode (Swift Package)
 2. Select the `FocusOrb` executable target
 3. Run
+
+## App Store Release
+
+From `FocusOrb/`:
+
+```bash
+./scripts/generate_xcodeproj.rb
+./scripts/release_preflight.sh
+```
+
+Archive with signing and version parameters:
+
+```bash
+DEVELOPMENT_TEAM=YOURTEAMID \
+APP_BUNDLE_ID=com.yourcompany.focusorb \
+MARKETING_VERSION=1.0.0 \
+BUILD_NUMBER=1 \
+./scripts/archive_app_store.sh
+```
+
+Full checklist: `FocusOrb/APP_STORE_RELEASE.md`
 
 ## Troubleshooting
 
