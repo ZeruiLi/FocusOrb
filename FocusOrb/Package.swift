@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "FocusOrb",
+    defaultLocalization: "en",
     platforms: [
         .macOS(.v14)
     ],
@@ -22,6 +23,11 @@ let package = Package(
             resources: [
                 .process("Resources")
             ]
+        ),
+        .testTarget(
+            name: "FocusOrbTests",
+            dependencies: ["FocusOrb"],
+            path: "Tests"
         )
     ]
 )

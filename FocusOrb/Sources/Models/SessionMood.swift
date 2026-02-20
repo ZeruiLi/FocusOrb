@@ -10,10 +10,10 @@ enum SessionMood: String, CaseIterable, Codable, Identifiable {
 
     var title: String {
         switch self {
-        case .calm: return "平静"
-        case .good: return "满足"
-        case .stressed: return "焦虑"
-        case .tired: return "疲惫"
+        case .calm: return L10n.string("平静")
+        case .good: return L10n.string("满足")
+        case .stressed: return L10n.string("焦虑")
+        case .tired: return L10n.string("疲惫")
         }
     }
 
@@ -27,4 +27,3 @@ enum SessionMood: String, CaseIterable, Codable, Identifiable {
         }
     }
 }
-

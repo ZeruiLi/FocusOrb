@@ -65,7 +65,7 @@ struct SessionSummaryView: View {
                         Image(systemName: "clock.fill")
                             .font(.caption2)
                             .foregroundColor(AppTheme.Colors.textMuted)
-                        Text("平均专注")
+                        Text(L10n.string("平均专注"))
                             .font(.caption)
                             .foregroundColor(AppTheme.Colors.textMuted)
                         Text(formatDuration(avgGreenStreak))
@@ -90,7 +90,7 @@ struct SessionSummaryView: View {
                     exportCard()
                 }
                 .disabled(isExporting)
-                .accessibilityLabel(Text("导出专注小卡"))
+                .accessibilityLabel(Text(L10n.string("导出专注小卡")))
                 .opacity(isExporting ? 0.6 : 1)
 
                 actionArea
@@ -98,11 +98,11 @@ struct SessionSummaryView: View {
         }
         .padding(10)
         .frame(width: 356)
-        .alert("导出失败", isPresented: Binding(
+        .alert(L10n.string("导出失败"), isPresented: Binding(
             get: { exportError != nil },
             set: { _ in exportError = nil }
         )) {
-            Button("OK", role: .cancel) {}
+            Button(L10n.string("OK"), role: .cancel) {}
         } message: {
             Text(exportError ?? "")
         }
@@ -134,7 +134,7 @@ struct SessionSummaryView: View {
         HStack(spacing: 6) {
             Image(systemName: "arrow.triangle.merge")
                 .font(.caption2)
-            Text("自动合并了 \(count) 段专注")
+            Text(L10n.string("自动合并了 %d 段专注", count))
                 .font(.caption)
         }
         .foregroundColor(AppTheme.Colors.textSecondary)
@@ -152,11 +152,11 @@ struct SessionSummaryView: View {
         GlassCard(padding: 12) {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
-                    Text("会话片段")
+                    Text(L10n.string("会话片段"))
                         .font(.caption.weight(.semibold))
                         .foregroundColor(AppTheme.Colors.textSecondary)
                     Spacer()
-                    Text("\(segments.count) 段")
+                    Text(L10n.string("%d 段", segments.count))
                         .font(.caption.monospacedDigit())
                         .foregroundColor(AppTheme.Colors.textMuted)
                 }
@@ -195,7 +195,7 @@ struct SessionSummaryView: View {
     private var actionArea: some View {
         if let onConfirmEnd, let onContinueSession {
             VStack(spacing: 10) {
-                Text("确认后将结束本次会话")
+                Text(L10n.string("确认后将结束本次会话"))
                     .font(.caption)
                     .foregroundColor(AppTheme.Colors.textMuted)
 
@@ -203,7 +203,7 @@ struct SessionSummaryView: View {
                     Button {
                         onContinueSession()
                     } label: {
-                        Text("继续会话")
+                        Text(L10n.string("继续会话"))
                             .font(.caption.weight(.semibold))
                             .foregroundColor(AppTheme.Colors.textSecondary)
                             .frame(minWidth: 96, minHeight: 38)
@@ -228,7 +228,7 @@ struct SessionSummaryView: View {
             Button {
                 onClose()
             } label: {
-                Text("关闭")
+                Text(L10n.string("关闭"))
                     .font(.caption.weight(.semibold))
                     .foregroundColor(AppTheme.Colors.textSecondary)
                     .frame(minWidth: 84, minHeight: 38)
@@ -246,7 +246,7 @@ struct SessionSummaryView: View {
 
     private var reflectionArea: some View {
         VStack(spacing: 10) {
-            Text("这次感觉如何？（可选）")
+            Text(L10n.string("这次感觉如何？（可选）"))
                 .font(.caption)
                 .foregroundColor(AppTheme.Colors.textMuted)
 
@@ -271,14 +271,14 @@ struct SessionSummaryView: View {
                         )
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(Text("心情：\(mood.title)"))
+                    .accessibilityLabel(Text(L10n.string("心情：%@", mood.title)))
                 }
             }
 
             Button {
                 onSetMood(nil)
             } label: {
-                Text("跳过")
+                Text(L10n.string("跳过"))
                     .font(.caption.weight(.semibold))
                     .foregroundColor(AppTheme.Colors.textSecondary)
                     .frame(minWidth: 84, minHeight: 34)
@@ -301,7 +301,7 @@ struct SessionSummaryView: View {
                     Image(systemName: systemImage)
                         .font(.caption2.weight(.semibold))
                         .foregroundColor(tint)
-                    Text(title)
+                    Text(L10n.string(title))
                         .font(.caption2)
                         .foregroundColor(AppTheme.Colors.textMuted)
                 }
@@ -316,21 +316,21 @@ struct SessionSummaryView: View {
 
     private var focusPercentText: String {
         let total = greenDuration + redDuration
-        guard total > 0 else { return "—" }
+        guard total > 0 else { return L10n.string("—") }
         return String(format: "%.0f%%", (greenDuration / total) * 100)
     }
 
     private var supportiveLine: String {
         let total = greenDuration + redDuration
-        guard total > 0 else { return "今天的每一小段努力都算数。" }
+        guard total > 0 else { return L10n.string("今天的每一小段努力都算数。") }
 
         let ratio = greenDuration / total
         if ratio >= 0.7 {
-            return "你保持了清晰的节奏。"
+            return L10n.string("你保持了清晰的节奏。")
         } else if ratio >= 0.4 {
-            return "有专注也有恢复，这很真实。"
+            return L10n.string("有专注也有恢复，这很真实。")
         } else {
-            return "你也在照顾自己，休息是计划的一部分。"
+            return L10n.string("你也在照顾自己，休息是计划的一部分。")
         }
     }
 
@@ -366,13 +366,13 @@ struct SessionSummaryView: View {
         renderer.scale = 2
 
         guard let nsImage = renderer.nsImage else {
-            exportError = "无法生成图片"
+            exportError = L10n.string("无法生成图片")
             return
         }
 
         let panel = NSSavePanel()
         panel.allowedContentTypes = [UTType.png]
-        panel.nameFieldStringValue = "FocusOrb-Session-\(exportDateString()).png"
+        panel.nameFieldStringValue = L10n.string("FocusOrb-Session-%@.png", exportDateString())
 
         let response = panel.runModal()
         guard response == .OK, let url = panel.url else { return }
@@ -380,14 +380,14 @@ struct SessionSummaryView: View {
         guard let tiff = nsImage.tiffRepresentation,
               let rep = NSBitmapImageRep(data: tiff),
               let data = rep.representation(using: .png, properties: [:]) else {
-            exportError = "导出失败"
+            exportError = L10n.string("导出失败")
             return
         }
 
         do {
             try data.write(to: url)
         } catch {
-            exportError = "写入失败：\(error.localizedDescription)"
+            exportError = L10n.string("写入失败：%@", error.localizedDescription)
         }
     }
 
@@ -415,7 +415,7 @@ private struct SessionExportCardView: View {
                     stickerMini(imageName: "focus")
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("FocusOrb · Session")
+                        Text(L10n.string("FocusOrb · Session"))
                             .font(.system(size: 13, weight: .semibold, design: .rounded))
                             .foregroundColor(AppTheme.Colors.exportTextSecondary)
                         Text("\(formatTime(startTime)) - \(formatTime(endTime))")
@@ -443,7 +443,7 @@ private struct SessionExportCardView: View {
                                     )
                                 )
 
-                            Text("本次专注时长")
+                            Text(L10n.string("本次专注时长"))
                                 .font(.system(size: 12, weight: .semibold, design: .rounded))
                                 .foregroundColor(AppTheme.Colors.exportTextSecondary)
                         }
@@ -492,15 +492,15 @@ private struct SessionExportCardView: View {
 
     private var supportiveLine: String {
         let total = greenDuration + redDuration
-        guard total > 0 else { return "今天的每一小段努力都算数。" }
+        guard total > 0 else { return L10n.string("今天的每一小段努力都算数。") }
 
         let ratio = greenDuration / total
         if ratio >= 0.7 {
-            return "你保持了清晰的节奏。"
+            return L10n.string("你保持了清晰的节奏。")
         } else if ratio >= 0.4 {
-            return "有专注也有恢复，这很真实。"
+            return L10n.string("有专注也有恢复，这很真实。")
         } else {
-            return "你也在照顾自己，休息是计划的一部分。"
+            return L10n.string("你也在照顾自己，休息是计划的一部分。")
         }
     }
 
@@ -534,7 +534,7 @@ private struct SessionExportCardView: View {
                     Image(systemName: systemImage)
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(tint)
-                    Text(title)
+                    Text(L10n.string(title))
                         .font(.system(size: 10, weight: .semibold, design: .rounded))
                         .foregroundColor(AppTheme.Colors.exportTextSecondary)
                 }
@@ -573,12 +573,12 @@ private struct SessionExportCardView: View {
         let seconds = Int(interval) % 60
 
         if hours > 0 {
-            return String(format: "%dh %02dm", hours, minutes)
+            return L10n.string("%dh %02dm", hours, minutes)
         }
         if minutes > 0 {
-            return String(format: "%02dm %02ds", minutes, seconds)
+            return L10n.string("%02dm %02ds", minutes, seconds)
         }
-        return String(format: "%02ds", seconds)
+        return L10n.string("%02ds", seconds)
     }
 
     private func formatTime(_ date: Date) -> String {

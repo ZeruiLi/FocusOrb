@@ -26,11 +26,11 @@ struct StickerHeader: View {
             HStack(spacing: 12) {
                 stickerIcon
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
+                    Text(L10n.string(title))
                         .font(AppTheme.Typography.title)
                         .foregroundColor(AppTheme.Colors.textPrimary)
                     if let subtitle {
-                        Text(subtitle)
+                        Text(L10n.string(subtitle))
                             .font(.caption)
                             .foregroundColor(AppTheme.Colors.textSecondary)
                     }
@@ -39,11 +39,11 @@ struct StickerHeader: View {
         case .centered:
             VStack(spacing: 8) {
                 stickerIcon
-                Text(title)
+                Text(L10n.string(title))
                     .font(AppTheme.Typography.title)
                     .foregroundColor(AppTheme.Colors.textPrimary)
                 if let subtitle {
-                    Text(subtitle)
+                    Text(L10n.string(subtitle))
                         .font(.caption)
                         .foregroundColor(AppTheme.Colors.textSecondary)
                 }
@@ -71,4 +71,3 @@ struct StickerHeader: View {
         }
     }
 }
-

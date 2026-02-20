@@ -114,8 +114,13 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     var startPanel: NSWindow?
     var dashboardWindow: NSWindow?  // Managed dashboard window
     var settingsWindow: NSWindow?
+    var captureWindow: NSWindow?
+    var quickNotePanel: NSPanel?
+    var quickClipsPanel: NSPanel?
+    var taskHUDPanel: NSPanel?
     
     private let stateMachine: OrbStateMachine
+    private let captureStore = CaptureStore.shared
     private let interactionState = OrbInteractionState()
     private let orbPanelSize = CGSize(width: 200.0 * (2.0 / 3.0), height: 170.0 * (2.0 / 3.0))
     private var cancellables = Set<AnyCancellable>()
@@ -179,6 +184,9 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         dragPanel.onDragBegan = { [weak self] in
             self?.interactionState.isPressed = false
         }
+        dragPanel.onDragEnded = { [weak self] in
+            self?.refreshTaskHUD()
+        }
         
         panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
@@ -211,23 +219,35 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     private func buildContextMenu() {
         let menu = NSMenu()
         
-        let endSessionItem = NSMenuItem(title: "End Session", action: #selector(menuEndSession), keyEquivalent: "")
+        let endSessionItem = NSMenuItem(title: L10n.string("End Session"), action: #selector(menuEndSession), keyEquivalent: "")
         endSessionItem.target = self
         menu.addItem(endSessionItem)
         
         menu.addItem(NSMenuItem.separator())
         
-        let dashboardItem = NSMenuItem(title: "Dashboard", action: #selector(menuShowDashboard), keyEquivalent: "d")
+        let dashboardItem = NSMenuItem(title: L10n.string("Dashboard"), action: #selector(menuShowDashboard), keyEquivalent: "d")
         dashboardItem.target = self
         menu.addItem(dashboardItem)
+
+        let captureItem = NSMenuItem(title: L10n.string("Capture"), action: #selector(menuShowCapture), keyEquivalent: "c")
+        captureItem.target = self
+        menu.addItem(captureItem)
+
+        let quickNoteItem = NSMenuItem(title: L10n.string("Quick Note"), action: #selector(menuShowQuickNote), keyEquivalent: "n")
+        quickNoteItem.target = self
+        menu.addItem(quickNoteItem)
+
+        let quickClipsItem = NSMenuItem(title: L10n.string("Quick Clips"), action: #selector(menuShowQuickClips), keyEquivalent: "l")
+        quickClipsItem.target = self
+        menu.addItem(quickClipsItem)
         
-        let hideItem = NSMenuItem(title: "Hide Orb", action: #selector(menuHideOrb), keyEquivalent: "h")
+        let hideItem = NSMenuItem(title: L10n.string("Hide Orb"), action: #selector(menuHideOrb), keyEquivalent: "h")
         hideItem.target = self
         menu.addItem(hideItem)
         
         menu.addItem(NSMenuItem.separator())
         
-        let quitItem = NSMenuItem(title: "Quit", action: #selector(menuQuit), keyEquivalent: "q")
+        let quitItem = NSMenuItem(title: L10n.string("Quit"), action: #selector(menuQuit), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
         
@@ -249,7 +269,27 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     }
     
     @objc private func menuShowDashboard() {
-        showDashboard()
+        DispatchQueue.main.async { [weak self] in
+            self?.showDashboard()
+        }
+    }
+
+    @objc private func menuShowCapture() {
+        DispatchQueue.main.async { [weak self] in
+            self?.showCapture(initialTab: .notes)
+        }
+    }
+
+    @objc private func menuShowQuickNote() {
+        DispatchQueue.main.async { [weak self] in
+            self?.showQuickNote()
+        }
+    }
+
+    @objc private func menuShowQuickClips() {
+        DispatchQueue.main.async { [weak self] in
+            self?.showQuickClips()
+        }
     }
     
     @objc private func menuHideOrb() {
@@ -337,6 +377,22 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
                         AppSettings.shared.hasSeenOnboarding = true
                     }
                 }
+                self.refreshTaskHUD()
+            }
+            .store(in: &cancellables)
+
+        captureStore.$topTask
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.refreshTaskHUD()
+            }
+            .store(in: &cancellables)
+
+        AppSettings.shared.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.refreshTaskHUD()
+                self?.refreshLocalizedUI()
             }
             .store(in: &cancellables)
     }
@@ -384,7 +440,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         toastView.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.85).cgColor
         toastView.layer?.cornerRadius = 12
         
-        let label = NSTextField(labelWithString: "✅ 已恢复上次会话\n您的专注会话已从上次中断处继续")
+        let label = NSTextField(labelWithString: L10n.string("✅ 已恢复上次会话\n您的专注会话已从上次中断处继续"))
         label.alignment = .center
         label.textColor = .white
         label.font = NSFont.systemFont(ofSize: 13)
@@ -438,7 +494,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
             window.center()
-            window.contentView = NSHostingView(rootView: startView)
+            window.contentView = NSHostingView(rootView: localizedRoot(startView))
             window.isReleasedWhenClosed = false
             startPanel = window
         }
@@ -465,11 +521,13 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         }
         panel.orderFront(nil)
         isOrbVisible = true
+        refreshTaskHUD()
     }
     
     func hideOrb() {
         panel.orderOut(nil)
         isOrbVisible = false
+        hideTaskHUD()
     }
     
     @Published var isOrbVisible: Bool = false
@@ -488,6 +546,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         guard !isOrbInteractionLocked else { return }
         panel.orderFront(nil)
         isOrbVisible = true
+        refreshTaskHUD()
     }
 
     private func cancelPreEndSummary(showOrbAfterCancel: Bool) {
@@ -519,15 +578,90 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
                 backing: .buffered,
                 defer: false
             )
-            window.title = "FocusOrb · 复盘"
+            window.title = L10n.string("FocusOrb · 复盘")
             window.center()
-            window.contentView = NSHostingView(rootView: DashboardView(eventStore: EventStore.shared))
+            window.contentView = NSHostingView(rootView: localizedRoot(DashboardView(eventStore: EventStore.shared)))
             window.isReleasedWhenClosed = false
             window.delegate = self
             dashboardWindow = window
         }
         
         dashboardWindow?.makeKeyAndOrderFront(nil)
+    }
+
+    func showCapture(initialTab: CaptureTab = .notes) {
+        NSApp.activate(ignoringOtherApps: true)
+
+        if captureWindow == nil {
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 700, height: 920),
+                styleMask: [.titled, .closable, .miniaturizable, .resizable],
+                backing: .buffered,
+                defer: false
+            )
+            window.title = L10n.string("FocusOrb · Capture")
+            window.center()
+            window.isReleasedWhenClosed = false
+            window.delegate = self
+            window.minSize = NSSize(width: 660, height: 820)
+            captureWindow = window
+        }
+
+        captureWindow?.minSize = NSSize(width: 660, height: 820)
+        captureWindow?.contentView = NSHostingView(rootView: localizedRoot(CaptureDrawerView(initialTab: initialTab)))
+        captureWindow?.makeKeyAndOrderFront(nil)
+    }
+
+    func showQuickNote() {
+        NSApp.activate(ignoringOtherApps: true)
+
+        if quickNotePanel == nil {
+            quickNotePanel = NSPanel(
+                contentRect: NSRect(x: 0, y: 0, width: 340, height: 180),
+                styleMask: [.titled, .closable],
+                backing: .buffered,
+                defer: false
+            )
+            quickNotePanel?.title = L10n.string("Quick Note")
+            quickNotePanel?.isFloatingPanel = true
+            quickNotePanel?.level = .floating
+            quickNotePanel?.isReleasedWhenClosed = false
+            quickNotePanel?.delegate = self
+            quickNotePanel?.hidesOnDeactivate = false
+        }
+
+        let rootView = QuickNotePopoverView(captureStore: captureStore) { [weak self] in
+            self?.quickNotePanel?.orderOut(nil)
+        }
+        quickNotePanel?.contentView = NSHostingView(rootView: localizedRoot(rootView))
+        positionQuickPanel(quickNotePanel, preferredSize: CGSize(width: 340, height: 190))
+        quickNotePanel?.makeKeyAndOrderFront(nil)
+    }
+
+    func showQuickClips() {
+        NSApp.activate(ignoringOtherApps: true)
+
+        if quickClipsPanel == nil {
+            quickClipsPanel = NSPanel(
+                contentRect: NSRect(x: 0, y: 0, width: 380, height: 360),
+                styleMask: [.titled, .closable],
+                backing: .buffered,
+                defer: false
+            )
+            quickClipsPanel?.title = L10n.string("Quick Clips")
+            quickClipsPanel?.isFloatingPanel = true
+            quickClipsPanel?.level = .floating
+            quickClipsPanel?.isReleasedWhenClosed = false
+            quickClipsPanel?.delegate = self
+            quickClipsPanel?.hidesOnDeactivate = false
+        }
+
+        let rootView = QuickClipsPopoverView(captureStore: captureStore) { [weak self] in
+            self?.quickClipsPanel?.orderOut(nil)
+        }
+        quickClipsPanel?.contentView = NSHostingView(rootView: localizedRoot(rootView))
+        positionQuickPanel(quickClipsPanel, preferredSize: CGSize(width: 380, height: 360))
+        quickClipsPanel?.makeKeyAndOrderFront(nil)
     }
 
     func showSettings() {
@@ -540,9 +674,9 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
                 backing: .buffered,
                 defer: false
             )
-            window.title = "FocusOrb · 设置"
+            window.title = L10n.string("FocusOrb · 设置")
             window.center()
-            window.contentView = NSHostingView(rootView: SettingsView())
+            window.contentView = NSHostingView(rootView: localizedRoot(SettingsView()))
             window.isReleasedWhenClosed = false
             window.delegate = self
             settingsWindow = window
@@ -560,6 +694,18 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
             return false
         }
         if sender == settingsWindow {
+            sender.orderOut(nil)
+            return false
+        }
+        if sender == captureWindow {
+            sender.orderOut(nil)
+            return false
+        }
+        if sender == quickNotePanel {
+            sender.orderOut(nil)
+            return false
+        }
+        if sender == quickClipsPanel {
             sender.orderOut(nil)
             return false
         }
@@ -591,6 +737,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
             showReflection: AppSettings.shared.enableSessionReflection,
             onSetMood: { [weak self] mood in
                 if let mood {
+                    self?.resolveSaveMoodToNotesPreferenceIfNeeded()
                     EventStore.shared.append(
                         OrbEvent(
                             type: .sessionReflection,
@@ -598,6 +745,18 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
                             meta: ["mood": mood.rawValue, "source": "summary"]
                         )
                     )
+                    if AppSettings.shared.saveMoodToNotes {
+                        let content = self?.buildReflectionNoteContent(
+                            mood: mood,
+                            startTime: startTime,
+                            endTime: endTime
+                        ) ?? L10n.string("[会话心情] %@", mood.title)
+                        CaptureStore.shared.addNote(
+                            content: content,
+                            source: .reflection,
+                            sessionId: reflectionSessionId
+                        )
+                    }
                 }
                 self?.setOrbInteractionLocked(false)
                 self?.summaryPanel?.orderOut(nil)
@@ -665,7 +824,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
             onContinueSession: onContinueSession
         )
 
-        summaryPanel?.contentView = NSHostingView(rootView: summaryView)
+        summaryPanel?.contentView = NSHostingView(rootView: localizedRoot(summaryView))
 
         if let orbFrame = panel.frame as CGRect? {
             let centerX = orbFrame.midX
@@ -679,5 +838,164 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
         }
 
         summaryPanel?.orderFront(nil)
+    }
+
+    // MARK: - Top Task HUD
+
+    private func hideTaskHUD() {
+        taskHUDPanel?.orderOut(nil)
+    }
+
+    private func refreshTaskHUD() {
+        guard isOrbVisible else {
+            hideTaskHUD()
+            return
+        }
+        guard AppSettings.shared.showTopTaskHUD else {
+            hideTaskHUD()
+            return
+        }
+        guard let task = captureStore.topTask else {
+            hideTaskHUD()
+            return
+        }
+
+        let panel = ensureTaskHUDPanel()
+        let estimatedWidth = estimateTopTaskHUDWidth(taskTitle: task.title)
+        let preferredWidth = min(max(170, estimatedWidth), 420)
+        let preferredSize = CGSize(width: preferredWidth, height: 34)
+        panel.setContentSize(preferredSize)
+        panel.contentView = NSHostingView(
+            rootView: localizedRoot(TopTaskHUDView(taskTitle: task.title) { [weak self] in
+                self?.showCapture(initialTab: .tasks)
+            })
+        )
+
+        positionTaskHUD()
+        panel.orderFront(nil)
+    }
+
+    private func ensureTaskHUDPanel() -> NSPanel {
+        if let taskHUDPanel {
+            return taskHUDPanel
+        }
+
+        let panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 220, height: 34),
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        panel.level = .floating
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        panel.backgroundColor = .clear
+        panel.isOpaque = false
+        panel.hasShadow = false
+        panel.isMovable = false
+        panel.isReleasedWhenClosed = false
+        taskHUDPanel = panel
+        return panel
+    }
+
+    private func estimateTopTaskHUDWidth(taskTitle: String) -> CGFloat {
+        let prefixText = L10n.string("Next:") as NSString
+        let titleText = taskTitle as NSString
+
+        let prefixWidth = prefixText.size(
+            withAttributes: [.font: NSFont.systemFont(ofSize: 11, weight: .semibold)]
+        ).width
+        let titleWidth = titleText.size(
+            withAttributes: [.font: NSFont.systemFont(ofSize: 12, weight: .semibold)]
+        ).width
+
+        // Icon + fixed paddings + inner spacings.
+        return ceil(prefixWidth + titleWidth + 50)
+    }
+
+    private func positionTaskHUD() {
+        guard let hudPanel = taskHUDPanel else { return }
+
+        let orbFrame = panel.frame
+        let hudSize = hudPanel.frame.size
+        guard let screen = panel.screen ?? NSScreen.main else { return }
+        let visible = screen.visibleFrame
+
+        var x = orbFrame.midX - hudSize.width / 2
+        x = min(max(x, visible.minX + 8), visible.maxX - hudSize.width - 8)
+
+        // Orb panel is larger than the visual cloud; anchor HUD to the cloud bottom.
+        let visualCloudBottomInset: CGFloat = 24
+        var y = orbFrame.minY + visualCloudBottomInset - hudSize.height - 4
+        if y < visible.minY + 8 {
+            y = orbFrame.maxY - 14
+        }
+
+        hudPanel.setFrameOrigin(NSPoint(x: x, y: y))
+    }
+
+    private func positionQuickPanel(_ panel: NSPanel?, preferredSize: CGSize) {
+        guard let panel else { return }
+        panel.setContentSize(preferredSize)
+
+        let screen = self.panel.screen ?? NSScreen.main
+        let visible = screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1200, height: 800)
+        let anchor = self.panel.frame
+
+        var x = anchor.maxX - preferredSize.width
+        var y = anchor.minY - preferredSize.height - 12
+        if y < visible.minY + 8 {
+            y = anchor.maxY + 12
+        }
+
+        x = min(max(x, visible.minX + 8), visible.maxX - preferredSize.width - 8)
+        y = min(max(y, visible.minY + 8), visible.maxY - preferredSize.height - 8)
+        panel.setFrameOrigin(NSPoint(x: x, y: y))
+    }
+
+    private func resolveSaveMoodToNotesPreferenceIfNeeded() {
+        guard !AppSettings.shared.hasAskedSaveMoodToNotes else { return }
+
+        let alert = NSAlert()
+        alert.messageText = L10n.string("保存心情到 Notes？")
+        alert.informativeText = L10n.string("以后将自动把会话心情保存到 Notes。你可以在设置里随时修改。")
+        alert.addButton(withTitle: L10n.string("保存"))
+        alert.addButton(withTitle: L10n.string("不保存"))
+        let response = alert.runModal()
+
+        AppSettings.shared.saveMoodToNotes = (response == .alertFirstButtonReturn)
+        AppSettings.shared.hasAskedSaveMoodToNotes = true
+    }
+
+    private func buildReflectionNoteContent(mood: SessionMood, startTime: Date, endTime: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return L10n.string(
+            "[会话心情] %@-%@ · %@",
+            formatter.string(from: startTime),
+            formatter.string(from: endTime),
+            mood.title
+        )
+    }
+
+    private func refreshLocalizedUI() {
+        buildContextMenu()
+        dashboardWindow?.title = L10n.string("FocusOrb · 复盘")
+        captureWindow?.title = L10n.string("FocusOrb · Capture")
+        quickNotePanel?.title = L10n.string("Quick Note")
+        quickClipsPanel?.title = L10n.string("Quick Clips")
+        settingsWindow?.title = L10n.string("FocusOrb · 设置")
+    }
+
+    private func localizedRoot<Content: View>(_ rootView: Content) -> some View {
+        LocalizedHostingRoot(content: rootView)
+    }
+}
+
+private struct LocalizedHostingRoot<Content: View>: View {
+    @ObservedObject private var settings = AppSettings.shared
+    let content: Content
+
+    var body: some View {
+        content.environment(\.locale, settings.locale)
     }
 }

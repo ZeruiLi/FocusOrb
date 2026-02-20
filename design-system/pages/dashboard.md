@@ -1,35 +1,72 @@
-# Dashboard (vNext)
+# Dashboard (vNext, Medium-Fidelity Rebuild)
 
-## Goals
+## Scope
 
-- 让用户 **30 秒内**回答：
-  - 我今天/本周专注了多久？
-  - 休息/中断占比如何？
-  - 我最容易被打断的节奏是什么？
-- 用“洞察卡片”替代复杂报表：**少而准**。
+- 仅重构 Dashboard 的 UI 结构与视觉语言。
+- 保留所有现有功能入口、显示逻辑、导出逻辑与数据口径。
+- 不修改 `Models` / `Services` / 持久化结构。
 
-## Components
+## Visual Direction
 
-- **Overview Ring**：只展示 Focus（Green）占比与总专注时长。
-- **Metric Cards**：4 张以内，固定布局，避免跳动。
-- **Trend Chart**：默认 **Green+Red 堆叠柱**（每天的专注/休息），便于看节奏，而非只看专注。
-- **分析区**：按日/周/月/年给出“高效时段/最专注的一天/平均每日专注/休息占比”等结论卡。
-- **应用洞察（App Insights）**：Top Apps（Focus/Break/切换次数），用于定位“分心来源”（仅 App 维度，强调本地与可控隐私）。
-- **Insight Cards**（建议 3 张）：
-  - 段数（Focus 段 / Break 段）
-  - 平均休息（RedTotal / RedSegments）
-  - 误触回滚（Cancel / Pending）
-- **Emotion Section**（可选开关）：
-  - 心情标签分布（chips 或小柱状）
-  - 一句温柔总结（与数据一致）
+- 风格：`Soft Neumorphism + Calm Minimal`
+- 目标：低打扰、强可读、重点突出（Hero 环形 + 2x2 KPI）
+- 视觉强度：中度还原（保留疗愈气质，弱化过重装饰）
 
-## States
+## Color Tokens (Dashboard)
 
-- 空态：给“下一步”而不是空白（如“开始一次专注，会自动生成趋势”）。
-- Loading：保留布局（避免 content jumping）。
+- Focus: `#45D78C`
+- Focus Deep: `#2F8E95`
+- Break Accent: `#F39A4A`
+- Background: `#F5F6F3 -> #FFFFFF`
+- Text Primary: `#1E2C2A`
+- Text Secondary: `#536C69`
 
-### 应用洞察卡片状态
+## Layout
 
-- 空态（未开启/无数据）：展示一行解释 + CTA（去 Settings 开启）。
-- 隐私提示：在 `i` 信息里明确“仅记录应用名（bundleId/名称），本地存储，可排除/清空”。
-- 详情页（查看全部）：支持搜索、排序、排除快捷入口。
+1. 顶部工具栏
+2. Hero 卡片（环形焦点 + 区间 + Focus/Break chips）
+3. 2x2 KPI 宫格（固定布局，十字分割）
+4. Secondary 卡片区（Rhythm / Trend / Analysis / Mood）
+5. Session List（保持原行为）
+
+## Feature Mapping (Must Keep)
+
+- `Period` 切换（日/周/月/年）：保留
+- `导出小卡` 与导出配置 Sheet：保留
+- Overview 环 + Focus 时长：保留（迁移到 Hero）
+- 区间文案与口号：保留（迁移到 Hero）
+- Focus/Break chips：保留（迁移到 Hero）
+- 4 KPI：保留（迁移到 2x2 宫格）
+- Rhythm / Trend / Analysis / Mood：保留原有显示条件与计算来源
+- Session 列表、心情标记、合并标记、空态文案：保留
+
+## Component Notes
+
+- `GlassCard` 增加 `variant`：
+  - `hero`
+  - `standard`
+  - `subtle`
+- 新增 `DashboardHeroCard`：
+  - 发光环动画
+  - 中央专注时长
+  - 区间文案
+  - Focus/Break 胶囊
+- 子卡片统一使用 `subtle` 变体，确保层级一致。
+
+## Motion & A11y
+
+- 环形主动画：`180ms - 260ms`
+- 每屏主动效最多 1 个（环形进度）
+- 支持 `Reduce Motion`
+- 可读性对比度至少 `4.5:1`
+- 可点击目标至少 `44x44`
+
+## QA Checklist
+
+- [ ] Period 切换后，所有指标和图表即时刷新
+- [ ] 导出按钮可打开 Sheet，所有开关组合可导出
+- [ ] `dailyTrend.count <= 1` 时不展示 Trend
+- [ ] Mood 空数据隐藏，非空显示
+- [ ] Session 行显示心情与合并标记不回归
+- [ ] 空数据状态无崩溃，文案完整
+- [ ] `swift test` 通过

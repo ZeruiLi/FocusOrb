@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "E994F2F3FCD607738A88276C"
+               BlueprintIdentifier = "32239DA845AD47F287ECB036"
                BuildableName = "FocusOrb.app"
                BlueprintName = "FocusOrb"
                ReferencedContainer = "container:FocusOrb.xcodeproj">
@@ -30,7 +30,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "E994F2F3FCD607738A88276C"
+            BlueprintIdentifier = "32239DA845AD47F287ECB036"
             BuildableName = "FocusOrb.app"
             BlueprintName = "FocusOrb"
             ReferencedContainer = "container:FocusOrb.xcodeproj">
@@ -53,7 +53,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "E994F2F3FCD607738A88276C"
+            BlueprintIdentifier = "32239DA845AD47F287ECB036"
             BuildableName = "FocusOrb.app"
             BlueprintName = "FocusOrb"
             ReferencedContainer = "container:FocusOrb.xcodeproj">
@@ -70,7 +70,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "E994F2F3FCD607738A88276C"
+            BlueprintIdentifier = "32239DA845AD47F287ECB036"
             BuildableName = "FocusOrb.app"
             BlueprintName = "FocusOrb"
             ReferencedContainer = "container:FocusOrb.xcodeproj">

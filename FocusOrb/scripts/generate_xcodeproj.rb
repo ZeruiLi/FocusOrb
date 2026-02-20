@@ -43,10 +43,13 @@ end
 main_group = project.main_group
 
 swift_sources = Dir.glob(File.join(root, 'Sources/**/*.swift')).sort
+localized_resources = Dir.glob(File.join(root, 'Sources/Resources/**/*.lproj/*')).select do |path|
+  File.file?(path) && %w[.strings .stringsdict].include?(File.extname(path))
+end.sort
 resource_entries = [
   File.join(root, 'Sources/Resources/Assets.xcassets'),
   File.join(root, 'Sources/Resources/PrivacyInfo.xcprivacy')
-] + Dir.glob(File.join(root, 'Sources/Resources/Orb/*.png')).sort
+] + Dir.glob(File.join(root, 'Sources/Resources/Orb/*.png')).sort + localized_resources
 
 (swift_sources + resource_entries + [File.join(root, 'Info.plist'), File.join(root, 'FocusOrb.entitlements')]).each do |abs_path|
   rel_path = Pathname(abs_path).relative_path_from(Pathname(root)).to_s

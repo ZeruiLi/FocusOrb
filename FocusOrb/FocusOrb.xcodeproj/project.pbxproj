@@ -7,167 +7,233 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		05DCA9764EA308D738E2BC37 /* StickerHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B8EB65D1492CDFFC3145DA9 /* StickerHeader.swift */; };
-		092B68C78DF5DD14502CA964 /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCBA1258B9D5FBEF71CAC48A /* LaunchAtLoginManager.swift */; };
-		0D771ADB4D508F23B5915616 /* RuntimeSessionSnapshotStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CEE6B0CA364310FAA309AD4 /* RuntimeSessionSnapshotStore.swift */; };
-		12D69330524E0D76265E2D9D /* EventStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF0AF64BC1B91DFC77C2FDB /* EventStore.swift */; };
-		23B14944B48FBEA59C1754D7 /* focus.png in Resources */ = {isa = PBXBuildFile; fileRef = EF668F7F4783275D7807A728 /* focus.png */; };
-		30A2601C6D5A5974B1F3B26E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 260AE03BF7FB2671F9A9FCFA /* PrivacyInfo.xcprivacy */; };
-		3875D3B361FF39959AAB3EFE /* SessionSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FF48B840C351513BB564EA3 /* SessionSummaryView.swift */; };
-		3DE335AFE18BEC5B1A32B645 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B659C4A57C399BE11BD671F /* GlassCard.swift */; };
-		46A56BED07DC8AD1A848A554 /* StartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08F8E1C37729E9BA4D136A76 /* StartView.swift */; };
-		49FF9BAD88F134CD4D2DB201 /* cup.png in Resources */ = {isa = PBXBuildFile; fileRef = 838AE99097C37A7F5224C9E4 /* cup.png */; };
-		4DEC88C0C15D2E998CDCE301 /* SessionMood.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A86B5C10DECE7538A9319EC /* SessionMood.swift */; };
-		5711525F301AD637B6DE0224 /* BundledImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA0B9AC37CB9E3A95C05740 /* BundledImage.swift */; };
-		6DC936E1CC86A36345EA7CAA /* PrimaryCapsuleButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9BAE54CEB2DC9D56A693416 /* PrimaryCapsuleButton.swift */; };
-		7509B4FCC145C4F5D193F42A /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D22B97A17E5AC1A88F996E5D /* AppTheme.swift */; };
-		7E39FAB6BE6F512CB9FECB40 /* OrbStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50B35BD284FA11BB6CC33CFC /* OrbStateMachine.swift */; };
-		A28076E09A6375CDB05C01F1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D5F728B4C28EC43845224B8 /* SettingsView.swift */; };
-		AB79D5F2DA6BE6DD3D506FDF /* IdleTimeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EDCF560DAE2016D0335A21 /* IdleTimeProvider.swift */; };
-		AC6900462C883517F8A59F72 /* sleep.png in Resources */ = {isa = PBXBuildFile; fileRef = 0B57D390F32594B10A3AEAAA /* sleep.png */; };
-		AC77A45FBE546EEE5CF06A0B /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38EB97F48767C588A3A26BD /* DashboardView.swift */; };
-		AE07E7E177744DE77BF8946D /* OrbWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 077F6E2548C02B565135556B /* OrbWindowManager.swift */; };
-		AE6FB9ADC1B13A05A7CF22CB /* OrbEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97879E0DC575868CE5D9643F /* OrbEvent.swift */; };
-		B1DE4ECEB2CF22674DC12206 /* break.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F27B46025C8D133AFC032C0 /* break.png */; };
-		B8441E117B128EB552C9310D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A8D6B8C536DEDB118D0E648E /* Assets.xcassets */; };
-		BD507358A0B04A27F2B7A5BA /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29508ED106076A4D477EA5B3 /* Cocoa.framework */; };
-		C8B9819DBE10990D7CAA2181 /* StatsCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACA993C20A13A70731BDD603 /* StatsCalculator.swift */; };
-		D755D6006EE53AF29E5C869D /* DatabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C362ACA07FE5408DECBCF8D3 /* DatabaseManager.swift */; };
-		DE565C88E4537B4CEFB89DC6 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C4A5B06C5E7D0A7BBA517C4 /* AppSettings.swift */; };
-		E093A1CE1D81AC7587FE6361 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 6059BD49A385AEA4E9D359C1 /* GRDB */; };
-		E4C5AC6BAE2FCCC7765EB391 /* OrbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC62AB4538DE95AA5932230A /* OrbView.swift */; };
-		EF4CA6D0A40B6BC54B9C6789 /* FocusOrbApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 585C803F0839291E58D67202 /* FocusOrbApp.swift */; };
-		F25BDF0ED314B2CA3793E63E /* tree.png in Resources */ = {isa = PBXBuildFile; fileRef = BBB55FB15907B70C3D5BF021 /* tree.png */; };
-		FD563D6F27C0DE399D01171A /* OrbDesignSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99093DA986A4FE0E495B35AE /* OrbDesignSurface.swift */; };
-		FF1CAA9A53CFB66AEFF7D4BE /* StatusBarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24A4771AFE328E67AE5C9430 /* StatusBarManager.swift */; };
+		03EC47885CA8E12E56CC28BE /* NoteEditorCloudSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B06E718D08642BB4FF0F8A /* NoteEditorCloudSurface.swift */; };
+		0AC113975A83ABBCA0B000DD /* BundledImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29441E28BFFE751DC98A03B2 /* BundledImage.swift */; };
+		0EE932E5F9AC8C6E0DD268EB /* CaptureDrawerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53274213CAB77C8F52C8380D /* CaptureDrawerView.swift */; };
+		111030296F3DF328E3A9CA58 /* CaptureTaskComposerCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40B9111DB3FB01DBBC25619A /* CaptureTaskComposerCard.swift */; };
+		116B99E966ED8ACBE5619FF0 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5D12703512556C43C65AFD92 /* Localizable.strings */; };
+		1492D150105E4A7ABF72DB73 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6190537C91AB47CDAB6885A /* AppSettings.swift */; };
+		14D76FD1AC8C1D4D530AE732 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD26D979B99DCD9E8F3671CB /* L10n.swift */; };
+		16F0DF1FBFC7B1AAC951AC97 /* CaptureAlgorithms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8549758308BDE4092A7AA876 /* CaptureAlgorithms.swift */; };
+		1BF4B4F61BA1E73EC658920D /* TaskItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE4F79399CB8A7E8C47B6CD5 /* TaskItem.swift */; };
+		1FF97621E527F690C8493E70 /* FocusOrbApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B93D308CBF59F4E01589FFD9 /* FocusOrbApp.swift */; };
+		278F93E40B8A8D3A33D3B871 /* StartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E295B2FCFC59F27C7F35F3E8 /* StartView.swift */; };
+		2C81CE310F2FDF8563FB68E6 /* RuntimeSessionSnapshotStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84DA4265FAFFFFD1EEE3D4FE /* RuntimeSessionSnapshotStore.swift */; };
+		2DA80D184AE57CD27A2A8776 /* CaptureSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 223F06BDF82DD718F8239A57 /* CaptureSegmentedControl.swift */; };
+		2EDBF2BC58CEDF95302EA019 /* ClipboardMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A788021ED5BBC0936191EBE9 /* ClipboardMonitor.swift */; };
+		3F896B394AB88BAD28E8CFEF /* OrbWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A35519D68A0F29F71CFAF6 /* OrbWindowManager.swift */; };
+		424C3C09460D2F2C4B0424EE /* SessionMood.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E548F1A9C25F224EF01EF5E /* SessionMood.swift */; };
+		47EFF4764708AA8F7F821DAC /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 221E06D7A60E05CCB24DAEF8 /* DashboardView.swift */; };
+		51B6282BA72879E8909BE14D /* StatusBarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 596F3F1334A919F6C2CF8BCA /* StatusBarManager.swift */; };
+		548A8BA2704F9635200DF3CB /* ClipItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 855CCA30BE067BDE5A6E7296 /* ClipItem.swift */; };
+		54E8081929509A566DEA89BF /* CaptureCloudListCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95347159120B82E813657023 /* CaptureCloudListCard.swift */; };
+		5ADF0501F551EDB36F8B1B7E /* CaptureCloudTopPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD646085FB4051CC49BD2DD3 /* CaptureCloudTopPanel.swift */; };
+		5DAFB6A2E40CB3B53EB6A683 /* OrbEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 377C5D1F465DB70E940B7BF0 /* OrbEvent.swift */; };
+		6845AF523DAB62B1AA1D6D60 /* focus.png in Resources */ = {isa = PBXBuildFile; fileRef = 9AE75D7A4B92B67882746CDD /* focus.png */; };
+		6A34DBFABC36013BDBBD6CF8 /* CaptureTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 150D64473AAA7C20D699F32A /* CaptureTab.swift */; };
+		708A5937C054767E58D0975C /* TopTaskHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80ADE2B1B3FBC03A32AA09EE /* TopTaskHUDView.swift */; };
+		70E1A34B20F49D13F4E2565D /* DashboardHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773CC0AA096852C8C2413CF8 /* DashboardHeroCard.swift */; };
+		71EE6F403FD73232052F0AFB /* StickerHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 151244B6CA407A44D367E7C7 /* StickerHeader.swift */; };
+		76E74D39B4E05BE436CA1F01 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D57E410F8D430EB0B6729668 /* Localizable.strings */; };
+		770005BF00D456689C4226E4 /* EventStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7BDE4E69E3E963BF9BA89DC /* EventStore.swift */; };
+		80E16D4414507FCAE939C0E6 /* CaptureSearchField.swift in Sources */ = {isa = PBXBuildFile; fileRef = E201054670DF542A26F6B3F4 /* CaptureSearchField.swift */; };
+		8523A3C30EED266AD7CC7486 /* CaptureEmptyCloudState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B3F9F13FD0D693912AEA93D /* CaptureEmptyCloudState.swift */; };
+		8651B7B3B70B5CD1C8348EAC /* SessionSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E85A5533F181521396BA7AB /* SessionSummaryView.swift */; };
+		8C5C782CEF68BBE27141E141 /* NoteItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB1B8008BA95A8682341B91 /* NoteItem.swift */; };
+		8F995408D56D21B713BCCB9D /* IdleTimeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331939FD245E0EAA34ADDC01 /* IdleTimeProvider.swift */; };
+		906CC5FD6C3C84D53AF11514 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3350406087AD0056A5EA5E2 /* GlassCard.swift */; };
+		922D88B609C6E559F0DB2041 /* cup.png in Resources */ = {isa = PBXBuildFile; fileRef = 1152F4E716B63B8E1FBDC972 /* cup.png */; };
+		936D51A1811054CADBF83D5E /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = C713B200FB711BB00D87F4A3 /* AppTheme.swift */; };
+		93931F3C27E63CC245376ADD /* OrbDesignSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27DC04456EF401494D4628B6 /* OrbDesignSurface.swift */; };
+		9CB3F56081826B5D3C7AEE25 /* CaptureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24552C6FB4A0C91E4719B514 /* CaptureStore.swift */; };
+		9E9697111655AB93F6FC2ABA /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F39807B8B74134620C004A15 /* PrivacyInfo.xcprivacy */; };
+		9F1C8EA85B8553E4B4923219 /* QuickNotePopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE05BD86447D00B711A39E3 /* QuickNotePopoverView.swift */; };
+		A9322370390823BFB6AFF2B7 /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC8C8C1CA73F38DD6DE1CCF /* LaunchAtLoginManager.swift */; };
+		AC5E8BE758080D8BB0F46A9F /* OrbStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EFCBB3AFD78B6B2F0419FA5 /* OrbStateMachine.swift */; };
+		AC84047095CDCAADBB1C92E1 /* break.png in Resources */ = {isa = PBXBuildFile; fileRef = 7DE54FBF31EE93879F48326A /* break.png */; };
+		C34B936105C12E568972F70E /* QuickClipsPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F94488A3233E2470C111658F /* QuickClipsPopoverView.swift */; };
+		C3CD503861DAFB3705A24A0A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E4E68DA92DF47DA8226C784 /* Cocoa.framework */; };
+		CB7E9F74C08D84EF140808E6 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 5617CAF94C0D27F0E96F13CC /* GRDB */; };
+		D1F601B5866694DB0A4824E8 /* OrbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D457B4D9FDC4FFB9F2B1B1B /* OrbView.swift */; };
+		D4446D37DF4E77535DB8A304 /* DatabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6FBAC7A070D7B72E06BEB9 /* DatabaseManager.swift */; };
+		DDE41E1E091DA05B714887B6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5F0C698CC8D983EFD904C821 /* Assets.xcassets */; };
+		E0D0346D14E3587C75C088E9 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7492E358895742A89BDCD6B9 /* SettingsView.swift */; };
+		E5A65170CA63AA599DA27A0C /* PrimaryCapsuleButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A80042A848D2BCF1FFC7CE6B /* PrimaryCapsuleButton.swift */; };
+		ED3B25B01CE8AEE880149B60 /* tree.png in Resources */ = {isa = PBXBuildFile; fileRef = 9DDBE84E9F8D1D2622061B79 /* tree.png */; };
+		F5BCDE8DDD7C17FDCF1BE56C /* sleep.png in Resources */ = {isa = PBXBuildFile; fileRef = 110A2DA9EE827FC703D823DC /* sleep.png */; };
+		FAD65BC74B526CF9FAC3AD81 /* StatsCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6C6590F403FB8E2EFBCAC4F /* StatsCalculator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		077F6E2548C02B565135556B /* OrbWindowManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OrbWindowManager.swift; path = Sources/UI/OrbWindowManager.swift; sourceTree = "<group>"; };
-		08F8E1C37729E9BA4D136A76 /* StartView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StartView.swift; path = Sources/UI/StartView.swift; sourceTree = "<group>"; };
-		0B57D390F32594B10A3AEAAA /* sleep.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = sleep.png; path = Sources/Resources/Orb/sleep.png; sourceTree = "<group>"; };
-		0D5F728B4C28EC43845224B8 /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Sources/UI/SettingsView.swift; sourceTree = "<group>"; };
-		24A4771AFE328E67AE5C9430 /* StatusBarManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StatusBarManager.swift; path = Sources/UI/StatusBarManager.swift; sourceTree = "<group>"; };
-		260AE03BF7FB2671F9A9FCFA /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Sources/Resources/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		29508ED106076A4D477EA5B3 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
-		2EF0AF64BC1B91DFC77C2FDB /* EventStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = EventStore.swift; path = Sources/Services/EventStore.swift; sourceTree = "<group>"; };
-		3F27B46025C8D133AFC032C0 /* break.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = break.png; path = Sources/Resources/Orb/break.png; sourceTree = "<group>"; };
-		4A86B5C10DECE7538A9319EC /* SessionMood.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SessionMood.swift; path = Sources/Models/SessionMood.swift; sourceTree = "<group>"; };
-		4B659C4A57C399BE11BD671F /* GlassCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GlassCard.swift; path = Sources/UI/Components/GlassCard.swift; sourceTree = "<group>"; };
-		4B8EB65D1492CDFFC3145DA9 /* StickerHeader.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StickerHeader.swift; path = Sources/UI/Components/StickerHeader.swift; sourceTree = "<group>"; };
-		50B35BD284FA11BB6CC33CFC /* OrbStateMachine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OrbStateMachine.swift; path = Sources/Domain/OrbStateMachine.swift; sourceTree = "<group>"; };
-		585C803F0839291E58D67202 /* FocusOrbApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FocusOrbApp.swift; path = Sources/FocusOrbApp.swift; sourceTree = "<group>"; };
-		5D927C8D8C1B9A9143EA1116 /* FocusOrb.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = FocusOrb.entitlements; sourceTree = "<group>"; };
-		60829F62B303489B975D9C1C /* FocusOrb.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FocusOrb.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		65EDCF560DAE2016D0335A21 /* IdleTimeProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = IdleTimeProvider.swift; path = Sources/Services/IdleTimeProvider.swift; sourceTree = "<group>"; };
-		6C4A5B06C5E7D0A7BBA517C4 /* AppSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppSettings.swift; path = Sources/Models/AppSettings.swift; sourceTree = "<group>"; };
-		7CEE6B0CA364310FAA309AD4 /* RuntimeSessionSnapshotStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RuntimeSessionSnapshotStore.swift; path = Sources/Services/RuntimeSessionSnapshotStore.swift; sourceTree = "<group>"; };
-		838AE99097C37A7F5224C9E4 /* cup.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = cup.png; path = Sources/Resources/Orb/cup.png; sourceTree = "<group>"; };
-		8FF48B840C351513BB564EA3 /* SessionSummaryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SessionSummaryView.swift; path = Sources/UI/SessionSummaryView.swift; sourceTree = "<group>"; };
-		97879E0DC575868CE5D9643F /* OrbEvent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OrbEvent.swift; path = Sources/Models/OrbEvent.swift; sourceTree = "<group>"; };
-		99093DA986A4FE0E495B35AE /* OrbDesignSurface.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OrbDesignSurface.swift; path = Sources/UI/Components/OrbDesignSurface.swift; sourceTree = "<group>"; };
-		9DBA2CB8E377F18D9860F6AF /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A8D6B8C536DEDB118D0E648E /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Sources/Resources/Assets.xcassets; sourceTree = "<group>"; };
-		AC62AB4538DE95AA5932230A /* OrbView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OrbView.swift; path = Sources/UI/OrbView.swift; sourceTree = "<group>"; };
-		ACA993C20A13A70731BDD603 /* StatsCalculator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StatsCalculator.swift; path = Sources/Services/StatsCalculator.swift; sourceTree = "<group>"; };
-		BBB55FB15907B70C3D5BF021 /* tree.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = tree.png; path = Sources/Resources/Orb/tree.png; sourceTree = "<group>"; };
-		C362ACA07FE5408DECBCF8D3 /* DatabaseManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DatabaseManager.swift; path = Sources/Services/DatabaseManager.swift; sourceTree = "<group>"; };
-		CCBA1258B9D5FBEF71CAC48A /* LaunchAtLoginManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LaunchAtLoginManager.swift; path = Sources/Services/LaunchAtLoginManager.swift; sourceTree = "<group>"; };
-		D22B97A17E5AC1A88F996E5D /* AppTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppTheme.swift; path = Sources/UI/AppTheme.swift; sourceTree = "<group>"; };
-		D38EB97F48767C588A3A26BD /* DashboardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DashboardView.swift; path = Sources/UI/DashboardView.swift; sourceTree = "<group>"; };
-		EAA0B9AC37CB9E3A95C05740 /* BundledImage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BundledImage.swift; path = Sources/UI/BundledImage.swift; sourceTree = "<group>"; };
-		EF668F7F4783275D7807A728 /* focus.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = focus.png; path = Sources/Resources/Orb/focus.png; sourceTree = "<group>"; };
-		F9BAE54CEB2DC9D56A693416 /* PrimaryCapsuleButton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrimaryCapsuleButton.swift; path = Sources/UI/Components/PrimaryCapsuleButton.swift; sourceTree = "<group>"; };
+		110A2DA9EE827FC703D823DC /* sleep.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = sleep.png; path = Sources/Resources/Orb/sleep.png; sourceTree = "<group>"; };
+		1152F4E716B63B8E1FBDC972 /* cup.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = cup.png; path = Sources/Resources/Orb/cup.png; sourceTree = "<group>"; };
+		150D64473AAA7C20D699F32A /* CaptureTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CaptureTab.swift; path = Sources/Models/CaptureTab.swift; sourceTree = "<group>"; };
+		151244B6CA407A44D367E7C7 /* StickerHeader.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StickerHeader.swift; path = Sources/UI/Components/StickerHeader.swift; sourceTree = "<group>"; };
+		1BE05BD86447D00B711A39E3 /* QuickNotePopoverView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = QuickNotePopoverView.swift; path = Sources/UI/QuickNotePopoverView.swift; sourceTree = "<group>"; };
+		221E06D7A60E05CCB24DAEF8 /* DashboardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DashboardView.swift; path = Sources/UI/DashboardView.swift; sourceTree = "<group>"; };
+		223F06BDF82DD718F8239A57 /* CaptureSegmentedControl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CaptureSegmentedControl.swift; path = Sources/UI/Components/CaptureSegmentedControl.swift; sourceTree = "<group>"; };
+		24552C6FB4A0C91E4719B514 /* CaptureStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CaptureStore.swift; path = Sources/Services/CaptureStore.swift; sourceTree = "<group>"; };
+		27DC04456EF401494D4628B6 /* OrbDesignSurface.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OrbDesignSurface.swift; path = Sources/UI/Components/OrbDesignSurface.swift; sourceTree = "<group>"; };
+		29441E28BFFE751DC98A03B2 /* BundledImage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BundledImage.swift; path = Sources/UI/BundledImage.swift; sourceTree = "<group>"; };
+		2AC8C8C1CA73F38DD6DE1CCF /* LaunchAtLoginManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LaunchAtLoginManager.swift; path = Sources/Services/LaunchAtLoginManager.swift; sourceTree = "<group>"; };
+		331939FD245E0EAA34ADDC01 /* IdleTimeProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = IdleTimeProvider.swift; path = Sources/Services/IdleTimeProvider.swift; sourceTree = "<group>"; };
+		377C5D1F465DB70E940B7BF0 /* OrbEvent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OrbEvent.swift; path = Sources/Models/OrbEvent.swift; sourceTree = "<group>"; };
+		3F6FBAC7A070D7B72E06BEB9 /* DatabaseManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DatabaseManager.swift; path = Sources/Services/DatabaseManager.swift; sourceTree = "<group>"; };
+		3FB1B8008BA95A8682341B91 /* NoteItem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NoteItem.swift; path = Sources/Models/NoteItem.swift; sourceTree = "<group>"; };
+		40B9111DB3FB01DBBC25619A /* CaptureTaskComposerCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CaptureTaskComposerCard.swift; path = Sources/UI/Components/CaptureTaskComposerCard.swift; sourceTree = "<group>"; };
+		42A35519D68A0F29F71CFAF6 /* OrbWindowManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OrbWindowManager.swift; path = Sources/UI/OrbWindowManager.swift; sourceTree = "<group>"; };
+		4E548F1A9C25F224EF01EF5E /* SessionMood.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SessionMood.swift; path = Sources/Models/SessionMood.swift; sourceTree = "<group>"; };
+		53274213CAB77C8F52C8380D /* CaptureDrawerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CaptureDrawerView.swift; path = Sources/UI/CaptureDrawerView.swift; sourceTree = "<group>"; };
+		596F3F1334A919F6C2CF8BCA /* StatusBarManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StatusBarManager.swift; path = Sources/UI/StatusBarManager.swift; sourceTree = "<group>"; };
+		5D12703512556C43C65AFD92 /* Localizable.strings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = Localizable.strings; path = "Sources/Resources/zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		5D457B4D9FDC4FFB9F2B1B1B /* OrbView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OrbView.swift; path = Sources/UI/OrbView.swift; sourceTree = "<group>"; };
+		5E4E68DA92DF47DA8226C784 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		5F0C698CC8D983EFD904C821 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Sources/Resources/Assets.xcassets; sourceTree = "<group>"; };
+		6EFCBB3AFD78B6B2F0419FA5 /* OrbStateMachine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OrbStateMachine.swift; path = Sources/Domain/OrbStateMachine.swift; sourceTree = "<group>"; };
+		7492E358895742A89BDCD6B9 /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Sources/UI/SettingsView.swift; sourceTree = "<group>"; };
+		773CC0AA096852C8C2413CF8 /* DashboardHeroCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DashboardHeroCard.swift; path = Sources/UI/Components/DashboardHeroCard.swift; sourceTree = "<group>"; };
+		7DE54FBF31EE93879F48326A /* break.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = break.png; path = Sources/Resources/Orb/break.png; sourceTree = "<group>"; };
+		7E85A5533F181521396BA7AB /* SessionSummaryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SessionSummaryView.swift; path = Sources/UI/SessionSummaryView.swift; sourceTree = "<group>"; };
+		80ADE2B1B3FBC03A32AA09EE /* TopTaskHUDView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TopTaskHUDView.swift; path = Sources/UI/TopTaskHUDView.swift; sourceTree = "<group>"; };
+		84DA4265FAFFFFD1EEE3D4FE /* RuntimeSessionSnapshotStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RuntimeSessionSnapshotStore.swift; path = Sources/Services/RuntimeSessionSnapshotStore.swift; sourceTree = "<group>"; };
+		8549758308BDE4092A7AA876 /* CaptureAlgorithms.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CaptureAlgorithms.swift; path = Sources/Services/CaptureAlgorithms.swift; sourceTree = "<group>"; };
+		855CCA30BE067BDE5A6E7296 /* ClipItem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ClipItem.swift; path = Sources/Models/ClipItem.swift; sourceTree = "<group>"; };
+		8B3F9F13FD0D693912AEA93D /* CaptureEmptyCloudState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CaptureEmptyCloudState.swift; path = Sources/UI/Components/CaptureEmptyCloudState.swift; sourceTree = "<group>"; };
+		95347159120B82E813657023 /* CaptureCloudListCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CaptureCloudListCard.swift; path = Sources/UI/Components/CaptureCloudListCard.swift; sourceTree = "<group>"; };
+		9AE75D7A4B92B67882746CDD /* focus.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = focus.png; path = Sources/Resources/Orb/focus.png; sourceTree = "<group>"; };
+		9DDBE84E9F8D1D2622061B79 /* tree.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = tree.png; path = Sources/Resources/Orb/tree.png; sourceTree = "<group>"; };
+		A788021ED5BBC0936191EBE9 /* ClipboardMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ClipboardMonitor.swift; path = Sources/Services/ClipboardMonitor.swift; sourceTree = "<group>"; };
+		A80042A848D2BCF1FFC7CE6B /* PrimaryCapsuleButton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrimaryCapsuleButton.swift; path = Sources/UI/Components/PrimaryCapsuleButton.swift; sourceTree = "<group>"; };
+		B3350406087AD0056A5EA5E2 /* GlassCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GlassCard.swift; path = Sources/UI/Components/GlassCard.swift; sourceTree = "<group>"; };
+		B93D308CBF59F4E01589FFD9 /* FocusOrbApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FocusOrbApp.swift; path = Sources/FocusOrbApp.swift; sourceTree = "<group>"; };
+		C0487E3BA211BB4A636ADB39 /* FocusOrb.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = FocusOrb.entitlements; sourceTree = "<group>"; };
+		C713B200FB711BB00D87F4A3 /* AppTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppTheme.swift; path = Sources/UI/AppTheme.swift; sourceTree = "<group>"; };
+		C7B9693B428A48A2BFCDD862 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CD26D979B99DCD9E8F3671CB /* L10n.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = L10n.swift; path = Sources/Localization/L10n.swift; sourceTree = "<group>"; };
+		D57E410F8D430EB0B6729668 /* Localizable.strings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = Localizable.strings; path = Sources/Resources/en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		D6190537C91AB47CDAB6885A /* AppSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppSettings.swift; path = Sources/Models/AppSettings.swift; sourceTree = "<group>"; };
+		D7BDE4E69E3E963BF9BA89DC /* EventStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = EventStore.swift; path = Sources/Services/EventStore.swift; sourceTree = "<group>"; };
+		E201054670DF542A26F6B3F4 /* CaptureSearchField.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CaptureSearchField.swift; path = Sources/UI/Components/CaptureSearchField.swift; sourceTree = "<group>"; };
+		E295B2FCFC59F27C7F35F3E8 /* StartView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StartView.swift; path = Sources/UI/StartView.swift; sourceTree = "<group>"; };
+		EE4F79399CB8A7E8C47B6CD5 /* TaskItem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskItem.swift; path = Sources/Models/TaskItem.swift; sourceTree = "<group>"; };
+		F0B06E718D08642BB4FF0F8A /* NoteEditorCloudSurface.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NoteEditorCloudSurface.swift; path = Sources/UI/Components/NoteEditorCloudSurface.swift; sourceTree = "<group>"; };
+		F39807B8B74134620C004A15 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Sources/Resources/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		F6C6590F403FB8E2EFBCAC4F /* StatsCalculator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StatsCalculator.swift; path = Sources/Services/StatsCalculator.swift; sourceTree = "<group>"; };
+		F9212A9B1C26B269A42C871F /* FocusOrb.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FocusOrb.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F94488A3233E2470C111658F /* QuickClipsPopoverView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = QuickClipsPopoverView.swift; path = Sources/UI/QuickClipsPopoverView.swift; sourceTree = "<group>"; };
+		FD646085FB4051CC49BD2DD3 /* CaptureCloudTopPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CaptureCloudTopPanel.swift; path = Sources/UI/Components/CaptureCloudTopPanel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		644B5B04498B1F6A5C60EEB1 /* Frameworks */ = {
+		B69C464E9CF6DB0DB4E46AAE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BD507358A0B04A27F2B7A5BA /* Cocoa.framework in Frameworks */,
-				E093A1CE1D81AC7587FE6361 /* GRDB in Frameworks */,
+				C3CD503861DAFB3705A24A0A /* Cocoa.framework in Frameworks */,
+				CB7E9F74C08D84EF140808E6 /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1881B38C3C70128B18976E87 /* Frameworks */ = {
+		064417D01C899A590557F379 /* OS X */ = {
 			isa = PBXGroup;
 			children = (
-				6AECF2C7C96C55D118820A12 /* OS X */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		4376C001ED0A9AE998999BC0 = {
-			isa = PBXGroup;
-			children = (
-				76078B99330A71494846C5B1 /* Products */,
-				1881B38C3C70128B18976E87 /* Frameworks */,
-				50B35BD284FA11BB6CC33CFC /* OrbStateMachine.swift */,
-				585C803F0839291E58D67202 /* FocusOrbApp.swift */,
-				6C4A5B06C5E7D0A7BBA517C4 /* AppSettings.swift */,
-				97879E0DC575868CE5D9643F /* OrbEvent.swift */,
-				4A86B5C10DECE7538A9319EC /* SessionMood.swift */,
-				C362ACA07FE5408DECBCF8D3 /* DatabaseManager.swift */,
-				2EF0AF64BC1B91DFC77C2FDB /* EventStore.swift */,
-				65EDCF560DAE2016D0335A21 /* IdleTimeProvider.swift */,
-				CCBA1258B9D5FBEF71CAC48A /* LaunchAtLoginManager.swift */,
-				7CEE6B0CA364310FAA309AD4 /* RuntimeSessionSnapshotStore.swift */,
-				ACA993C20A13A70731BDD603 /* StatsCalculator.swift */,
-				D22B97A17E5AC1A88F996E5D /* AppTheme.swift */,
-				EAA0B9AC37CB9E3A95C05740 /* BundledImage.swift */,
-				4B659C4A57C399BE11BD671F /* GlassCard.swift */,
-				99093DA986A4FE0E495B35AE /* OrbDesignSurface.swift */,
-				F9BAE54CEB2DC9D56A693416 /* PrimaryCapsuleButton.swift */,
-				4B8EB65D1492CDFFC3145DA9 /* StickerHeader.swift */,
-				D38EB97F48767C588A3A26BD /* DashboardView.swift */,
-				AC62AB4538DE95AA5932230A /* OrbView.swift */,
-				077F6E2548C02B565135556B /* OrbWindowManager.swift */,
-				8FF48B840C351513BB564EA3 /* SessionSummaryView.swift */,
-				0D5F728B4C28EC43845224B8 /* SettingsView.swift */,
-				08F8E1C37729E9BA4D136A76 /* StartView.swift */,
-				24A4771AFE328E67AE5C9430 /* StatusBarManager.swift */,
-				A8D6B8C536DEDB118D0E648E /* Assets.xcassets */,
-				260AE03BF7FB2671F9A9FCFA /* PrivacyInfo.xcprivacy */,
-				3F27B46025C8D133AFC032C0 /* break.png */,
-				838AE99097C37A7F5224C9E4 /* cup.png */,
-				EF668F7F4783275D7807A728 /* focus.png */,
-				0B57D390F32594B10A3AEAAA /* sleep.png */,
-				BBB55FB15907B70C3D5BF021 /* tree.png */,
-				9DBA2CB8E377F18D9860F6AF /* Info.plist */,
-				5D927C8D8C1B9A9143EA1116 /* FocusOrb.entitlements */,
-			);
-			sourceTree = "<group>";
-		};
-		6AECF2C7C96C55D118820A12 /* OS X */ = {
-			isa = PBXGroup;
-			children = (
-				29508ED106076A4D477EA5B3 /* Cocoa.framework */,
+				5E4E68DA92DF47DA8226C784 /* Cocoa.framework */,
 			);
 			name = "OS X";
 			sourceTree = "<group>";
 		};
-		76078B99330A71494846C5B1 /* Products */ = {
+		135A142365D6B344D58822A5 = {
 			isa = PBXGroup;
 			children = (
-				60829F62B303489B975D9C1C /* FocusOrb.app */,
+				2124D052EDEB68285E1A7805 /* Products */,
+				571DADF98E96C7361C943B85 /* Frameworks */,
+				6EFCBB3AFD78B6B2F0419FA5 /* OrbStateMachine.swift */,
+				B93D308CBF59F4E01589FFD9 /* FocusOrbApp.swift */,
+				CD26D979B99DCD9E8F3671CB /* L10n.swift */,
+				D6190537C91AB47CDAB6885A /* AppSettings.swift */,
+				150D64473AAA7C20D699F32A /* CaptureTab.swift */,
+				855CCA30BE067BDE5A6E7296 /* ClipItem.swift */,
+				3FB1B8008BA95A8682341B91 /* NoteItem.swift */,
+				377C5D1F465DB70E940B7BF0 /* OrbEvent.swift */,
+				4E548F1A9C25F224EF01EF5E /* SessionMood.swift */,
+				EE4F79399CB8A7E8C47B6CD5 /* TaskItem.swift */,
+				8549758308BDE4092A7AA876 /* CaptureAlgorithms.swift */,
+				24552C6FB4A0C91E4719B514 /* CaptureStore.swift */,
+				A788021ED5BBC0936191EBE9 /* ClipboardMonitor.swift */,
+				3F6FBAC7A070D7B72E06BEB9 /* DatabaseManager.swift */,
+				D7BDE4E69E3E963BF9BA89DC /* EventStore.swift */,
+				331939FD245E0EAA34ADDC01 /* IdleTimeProvider.swift */,
+				2AC8C8C1CA73F38DD6DE1CCF /* LaunchAtLoginManager.swift */,
+				84DA4265FAFFFFD1EEE3D4FE /* RuntimeSessionSnapshotStore.swift */,
+				F6C6590F403FB8E2EFBCAC4F /* StatsCalculator.swift */,
+				C713B200FB711BB00D87F4A3 /* AppTheme.swift */,
+				29441E28BFFE751DC98A03B2 /* BundledImage.swift */,
+				53274213CAB77C8F52C8380D /* CaptureDrawerView.swift */,
+				95347159120B82E813657023 /* CaptureCloudListCard.swift */,
+				FD646085FB4051CC49BD2DD3 /* CaptureCloudTopPanel.swift */,
+				8B3F9F13FD0D693912AEA93D /* CaptureEmptyCloudState.swift */,
+				E201054670DF542A26F6B3F4 /* CaptureSearchField.swift */,
+				223F06BDF82DD718F8239A57 /* CaptureSegmentedControl.swift */,
+				40B9111DB3FB01DBBC25619A /* CaptureTaskComposerCard.swift */,
+				773CC0AA096852C8C2413CF8 /* DashboardHeroCard.swift */,
+				B3350406087AD0056A5EA5E2 /* GlassCard.swift */,
+				F0B06E718D08642BB4FF0F8A /* NoteEditorCloudSurface.swift */,
+				27DC04456EF401494D4628B6 /* OrbDesignSurface.swift */,
+				A80042A848D2BCF1FFC7CE6B /* PrimaryCapsuleButton.swift */,
+				151244B6CA407A44D367E7C7 /* StickerHeader.swift */,
+				221E06D7A60E05CCB24DAEF8 /* DashboardView.swift */,
+				5D457B4D9FDC4FFB9F2B1B1B /* OrbView.swift */,
+				42A35519D68A0F29F71CFAF6 /* OrbWindowManager.swift */,
+				F94488A3233E2470C111658F /* QuickClipsPopoverView.swift */,
+				1BE05BD86447D00B711A39E3 /* QuickNotePopoverView.swift */,
+				7E85A5533F181521396BA7AB /* SessionSummaryView.swift */,
+				7492E358895742A89BDCD6B9 /* SettingsView.swift */,
+				E295B2FCFC59F27C7F35F3E8 /* StartView.swift */,
+				596F3F1334A919F6C2CF8BCA /* StatusBarManager.swift */,
+				80ADE2B1B3FBC03A32AA09EE /* TopTaskHUDView.swift */,
+				5F0C698CC8D983EFD904C821 /* Assets.xcassets */,
+				F39807B8B74134620C004A15 /* PrivacyInfo.xcprivacy */,
+				7DE54FBF31EE93879F48326A /* break.png */,
+				1152F4E716B63B8E1FBDC972 /* cup.png */,
+				9AE75D7A4B92B67882746CDD /* focus.png */,
+				110A2DA9EE827FC703D823DC /* sleep.png */,
+				9DDBE84E9F8D1D2622061B79 /* tree.png */,
+				D57E410F8D430EB0B6729668 /* Localizable.strings */,
+				5D12703512556C43C65AFD92 /* Localizable.strings */,
+				C7B9693B428A48A2BFCDD862 /* Info.plist */,
+				C0487E3BA211BB4A636ADB39 /* FocusOrb.entitlements */,
+			);
+			sourceTree = "<group>";
+		};
+		2124D052EDEB68285E1A7805 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F9212A9B1C26B269A42C871F /* FocusOrb.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		571DADF98E96C7361C943B85 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				064417D01C899A590557F379 /* OS X */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		E994F2F3FCD607738A88276C /* FocusOrb */ = {
+		32239DA845AD47F287ECB036 /* FocusOrb */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = BF1C1AF44CC34666BA9BBF51 /* Build configuration list for PBXNativeTarget "FocusOrb" */;
+			buildConfigurationList = 68B172317B883B91D546F012 /* Build configuration list for PBXNativeTarget "FocusOrb" */;
 			buildPhases = (
-				223CAEC9ABF8F8AF72BBC35C /* Sources */,
-				644B5B04498B1F6A5C60EEB1 /* Frameworks */,
-				22C837F38389060F0C2E7952 /* Resources */,
+				FFBA377A29887415E6E1CD24 /* Sources */,
+				B69C464E9CF6DB0DB4E46AAE /* Frameworks */,
+				205BCB2C8E711D444F161011 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -175,22 +241,22 @@
 			);
 			name = FocusOrb;
 			packageProductDependencies = (
-				6059BD49A385AEA4E9D359C1 /* GRDB */,
+				5617CAF94C0D27F0E96F13CC /* GRDB */,
 			);
 			productName = FocusOrb;
-			productReference = 60829F62B303489B975D9C1C /* FocusOrb.app */;
+			productReference = F9212A9B1C26B269A42C871F /* FocusOrb.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		762EEC4529F04617E9E0FF0F /* Project object */ = {
+		033588E10F4DDD97F7CC1865 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1700;
 				LastUpgradeCheck = 1700;
 			};
-			buildConfigurationList = D6DE888A64552A5044C2F209 /* Build configuration list for PBXProject "FocusOrb" */;
+			buildConfigurationList = 72163424D12DA21EE4F74FCA /* Build configuration list for PBXProject "FocusOrb" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -198,73 +264,95 @@
 				en,
 				Base,
 			);
-			mainGroup = 4376C001ED0A9AE998999BC0;
+			mainGroup = 135A142365D6B344D58822A5;
 			minimizedProjectReferenceProxies = 0;
 			packageReferences = (
-				7B572FF77B19C3D076C54F02 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
+				37BFD74274DB07B66F076039 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 			);
-			productRefGroup = 76078B99330A71494846C5B1 /* Products */;
+			productRefGroup = 2124D052EDEB68285E1A7805 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				E994F2F3FCD607738A88276C /* FocusOrb */,
+				32239DA845AD47F287ECB036 /* FocusOrb */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		22C837F38389060F0C2E7952 /* Resources */ = {
+		205BCB2C8E711D444F161011 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B8441E117B128EB552C9310D /* Assets.xcassets in Resources */,
-				30A2601C6D5A5974B1F3B26E /* PrivacyInfo.xcprivacy in Resources */,
-				B1DE4ECEB2CF22674DC12206 /* break.png in Resources */,
-				49FF9BAD88F134CD4D2DB201 /* cup.png in Resources */,
-				23B14944B48FBEA59C1754D7 /* focus.png in Resources */,
-				AC6900462C883517F8A59F72 /* sleep.png in Resources */,
-				F25BDF0ED314B2CA3793E63E /* tree.png in Resources */,
+				DDE41E1E091DA05B714887B6 /* Assets.xcassets in Resources */,
+				9E9697111655AB93F6FC2ABA /* PrivacyInfo.xcprivacy in Resources */,
+				AC84047095CDCAADBB1C92E1 /* break.png in Resources */,
+				922D88B609C6E559F0DB2041 /* cup.png in Resources */,
+				6845AF523DAB62B1AA1D6D60 /* focus.png in Resources */,
+				F5BCDE8DDD7C17FDCF1BE56C /* sleep.png in Resources */,
+				ED3B25B01CE8AEE880149B60 /* tree.png in Resources */,
+				76E74D39B4E05BE436CA1F01 /* Localizable.strings in Resources */,
+				116B99E966ED8ACBE5619FF0 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		223CAEC9ABF8F8AF72BBC35C /* Sources */ = {
+		FFBA377A29887415E6E1CD24 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7E39FAB6BE6F512CB9FECB40 /* OrbStateMachine.swift in Sources */,
-				EF4CA6D0A40B6BC54B9C6789 /* FocusOrbApp.swift in Sources */,
-				DE565C88E4537B4CEFB89DC6 /* AppSettings.swift in Sources */,
-				AE6FB9ADC1B13A05A7CF22CB /* OrbEvent.swift in Sources */,
-				4DEC88C0C15D2E998CDCE301 /* SessionMood.swift in Sources */,
-				D755D6006EE53AF29E5C869D /* DatabaseManager.swift in Sources */,
-				12D69330524E0D76265E2D9D /* EventStore.swift in Sources */,
-				AB79D5F2DA6BE6DD3D506FDF /* IdleTimeProvider.swift in Sources */,
-				092B68C78DF5DD14502CA964 /* LaunchAtLoginManager.swift in Sources */,
-				0D771ADB4D508F23B5915616 /* RuntimeSessionSnapshotStore.swift in Sources */,
-				C8B9819DBE10990D7CAA2181 /* StatsCalculator.swift in Sources */,
-				7509B4FCC145C4F5D193F42A /* AppTheme.swift in Sources */,
-				5711525F301AD637B6DE0224 /* BundledImage.swift in Sources */,
-				3DE335AFE18BEC5B1A32B645 /* GlassCard.swift in Sources */,
-				FD563D6F27C0DE399D01171A /* OrbDesignSurface.swift in Sources */,
-				6DC936E1CC86A36345EA7CAA /* PrimaryCapsuleButton.swift in Sources */,
-				05DCA9764EA308D738E2BC37 /* StickerHeader.swift in Sources */,
-				AC77A45FBE546EEE5CF06A0B /* DashboardView.swift in Sources */,
-				E4C5AC6BAE2FCCC7765EB391 /* OrbView.swift in Sources */,
-				AE07E7E177744DE77BF8946D /* OrbWindowManager.swift in Sources */,
-				3875D3B361FF39959AAB3EFE /* SessionSummaryView.swift in Sources */,
-				A28076E09A6375CDB05C01F1 /* SettingsView.swift in Sources */,
-				46A56BED07DC8AD1A848A554 /* StartView.swift in Sources */,
-				FF1CAA9A53CFB66AEFF7D4BE /* StatusBarManager.swift in Sources */,
+				AC5E8BE758080D8BB0F46A9F /* OrbStateMachine.swift in Sources */,
+				1FF97621E527F690C8493E70 /* FocusOrbApp.swift in Sources */,
+				14D76FD1AC8C1D4D530AE732 /* L10n.swift in Sources */,
+				1492D150105E4A7ABF72DB73 /* AppSettings.swift in Sources */,
+				6A34DBFABC36013BDBBD6CF8 /* CaptureTab.swift in Sources */,
+				548A8BA2704F9635200DF3CB /* ClipItem.swift in Sources */,
+				8C5C782CEF68BBE27141E141 /* NoteItem.swift in Sources */,
+				5DAFB6A2E40CB3B53EB6A683 /* OrbEvent.swift in Sources */,
+				424C3C09460D2F2C4B0424EE /* SessionMood.swift in Sources */,
+				1BF4B4F61BA1E73EC658920D /* TaskItem.swift in Sources */,
+				16F0DF1FBFC7B1AAC951AC97 /* CaptureAlgorithms.swift in Sources */,
+				9CB3F56081826B5D3C7AEE25 /* CaptureStore.swift in Sources */,
+				2EDBF2BC58CEDF95302EA019 /* ClipboardMonitor.swift in Sources */,
+				D4446D37DF4E77535DB8A304 /* DatabaseManager.swift in Sources */,
+				770005BF00D456689C4226E4 /* EventStore.swift in Sources */,
+				8F995408D56D21B713BCCB9D /* IdleTimeProvider.swift in Sources */,
+				A9322370390823BFB6AFF2B7 /* LaunchAtLoginManager.swift in Sources */,
+				2C81CE310F2FDF8563FB68E6 /* RuntimeSessionSnapshotStore.swift in Sources */,
+				FAD65BC74B526CF9FAC3AD81 /* StatsCalculator.swift in Sources */,
+				936D51A1811054CADBF83D5E /* AppTheme.swift in Sources */,
+				0AC113975A83ABBCA0B000DD /* BundledImage.swift in Sources */,
+				0EE932E5F9AC8C6E0DD268EB /* CaptureDrawerView.swift in Sources */,
+				54E8081929509A566DEA89BF /* CaptureCloudListCard.swift in Sources */,
+				5ADF0501F551EDB36F8B1B7E /* CaptureCloudTopPanel.swift in Sources */,
+				8523A3C30EED266AD7CC7486 /* CaptureEmptyCloudState.swift in Sources */,
+				80E16D4414507FCAE939C0E6 /* CaptureSearchField.swift in Sources */,
+				2DA80D184AE57CD27A2A8776 /* CaptureSegmentedControl.swift in Sources */,
+				111030296F3DF328E3A9CA58 /* CaptureTaskComposerCard.swift in Sources */,
+				70E1A34B20F49D13F4E2565D /* DashboardHeroCard.swift in Sources */,
+				906CC5FD6C3C84D53AF11514 /* GlassCard.swift in Sources */,
+				03EC47885CA8E12E56CC28BE /* NoteEditorCloudSurface.swift in Sources */,
+				93931F3C27E63CC245376ADD /* OrbDesignSurface.swift in Sources */,
+				E5A65170CA63AA599DA27A0C /* PrimaryCapsuleButton.swift in Sources */,
+				71EE6F403FD73232052F0AFB /* StickerHeader.swift in Sources */,
+				47EFF4764708AA8F7F821DAC /* DashboardView.swift in Sources */,
+				D1F601B5866694DB0A4824E8 /* OrbView.swift in Sources */,
+				3F896B394AB88BAD28E8CFEF /* OrbWindowManager.swift in Sources */,
+				C34B936105C12E568972F70E /* QuickClipsPopoverView.swift in Sources */,
+				9F1C8EA85B8553E4B4923219 /* QuickNotePopoverView.swift in Sources */,
+				8651B7B3B70B5CD1C8348EAC /* SessionSummaryView.swift in Sources */,
+				E0D0346D14E3587C75C088E9 /* SettingsView.swift in Sources */,
+				278F93E40B8A8D3A33D3B871 /* StartView.swift in Sources */,
+				51B6282BA72879E8909BE14D /* StatusBarManager.swift in Sources */,
+				708A5937C054767E58D0975C /* TopTaskHUDView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		6B9FC08D4654AD421E5FD77B /* Release */ = {
+		5AF1A1CD6DD29F3F96E66009 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -273,7 +361,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
@@ -284,9 +371,66 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.9;
 			};
+			name = Debug;
+		};
+		6A46C7D4D23CB6EAE2C9719E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
 			name = Release;
 		};
-		77F65E250FAC532A39F762A4 /* Debug */ = {
+		CA6306CD33573715A9ECB250 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -350,7 +494,7 @@
 			};
 			name = Debug;
 		};
-		85BD0031472743657A0C0785 /* Debug */ = {
+		E1AACAA911737CCEC1197B17 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -359,6 +503,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
@@ -369,82 +514,25 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.9;
 			};
-			name = Debug;
-		};
-		EF94649BFED5C313058E60D1 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_NS_ASSERTIONS = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.0;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
-				SWIFT_VERSION = 5.9;
-			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		BF1C1AF44CC34666BA9BBF51 /* Build configuration list for PBXNativeTarget "FocusOrb" */ = {
+		68B172317B883B91D546F012 /* Build configuration list for PBXNativeTarget "FocusOrb" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				6B9FC08D4654AD421E5FD77B /* Release */,
-				85BD0031472743657A0C0785 /* Debug */,
+				E1AACAA911737CCEC1197B17 /* Release */,
+				5AF1A1CD6DD29F3F96E66009 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D6DE888A64552A5044C2F209 /* Build configuration list for PBXProject "FocusOrb" */ = {
+		72163424D12DA21EE4F74FCA /* Build configuration list for PBXProject "FocusOrb" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				77F65E250FAC532A39F762A4 /* Debug */,
-				EF94649BFED5C313058E60D1 /* Release */,
+				CA6306CD33573715A9ECB250 /* Debug */,
+				6A46C7D4D23CB6EAE2C9719E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -452,7 +540,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		7B572FF77B19C3D076C54F02 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+		37BFD74274DB07B66F076039 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/groue/GRDB.swift.git";
 			requirement = {
@@ -463,12 +551,12 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		6059BD49A385AEA4E9D359C1 /* GRDB */ = {
+		5617CAF94C0D27F0E96F13CC /* GRDB */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 7B572FF77B19C3D076C54F02 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			package = 37BFD74274DB07B66F076039 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
 			productName = GRDB;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = 762EEC4529F04617E9E0FF0F /* Project object */;
+	rootObject = 033588E10F4DDD97F7CC1865 /* Project object */;
 }
