@@ -137,6 +137,21 @@ BUILD_NUMBER=1 \
 
 Full checklist: `FocusOrb/APP_STORE_RELEASE.md`
 
+## Unsigned Test Distribution (for friend testing)
+
+From `FocusOrb/`:
+
+```bash
+./scripts/build_test_distribution_unsigned.sh
+```
+
+Artifacts are generated under `FocusOrb/build/test-distribution/`:
+- `FocusOrb-macOS-test-unsigned.dmg`
+- `FocusOrb-macOS-test-unsigned.zip`
+- `VALIDATION-打包机结果.txt`
+
+The DMG includes `README-在其它Mac运行.md` and `open_after_download.command`.
+
 ## Troubleshooting
 
 ### “It’s running but I don’t see the app”

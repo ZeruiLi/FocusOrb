@@ -22,6 +22,9 @@ struct StartView: View {
                     Label(L10n.string("绿色→橙色 3秒内可回滚"), systemImage: "arrow.uturn.backward")
                         .font(AppTheme.Typography.caption)
                         .foregroundColor(AppTheme.Colors.textSecondary)
+                    Label(L10n.string("也可直接点击灰色云彩开始"), systemImage: "cloud.fill")
+                        .font(AppTheme.Typography.caption)
+                        .foregroundColor(AppTheme.Colors.textSecondary)
                 }
                 .foregroundColor(AppTheme.Colors.textPrimary)
             }

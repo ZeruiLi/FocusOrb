@@ -3,6 +3,18 @@ import AppKit
 import Combine
 import UserNotifications
 
+enum LaunchDestination: Equatable {
+    case firstLaunchAssist
+    case startAndShowOrb
+    case startOnly
+    case resumeAndShowOrb
+}
+
+struct StartPresentationPolicy: Equatable {
+    let hideOrbBeforeShow: Bool
+    let allowClose: Bool
+}
+
 final class OrbInteractionState: ObservableObject {
     @Published var isPressed = false
 }
@@ -118,6 +130,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     var quickNotePanel: NSPanel?
     var quickClipsPanel: NSPanel?
     var taskHUDPanel: NSPanel?
+    private var resumeToastWindow: NSWindow?
     
     private let stateMachine: OrbStateMachine
     private let captureStore = CaptureStore.shared
@@ -127,6 +140,7 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     private var isPresentingPreEndSummary = false
     private var skipPostEndSummaryOnce = false
     private var isOrbInteractionLocked = false
+    private var startPanelAllowsClose = false
     
     init(stateMachine: OrbStateMachine) {
         self.stateMachine = stateMachine
@@ -399,29 +413,68 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     
     // MARK: - Flow Control
     
+    static func launchDestination(
+        currentState: OrbState,
+        hasSeenOnboarding: Bool,
+        showOrbOnLaunch: Bool
+    ) -> LaunchDestination {
+        if case .idle = currentState {
+            if !hasSeenOnboarding {
+                return .firstLaunchAssist
+            }
+            return showOrbOnLaunch ? .startAndShowOrb : .startOnly
+        }
+        return .resumeAndShowOrb
+    }
+
+    static func startPresentationPolicy(for destination: LaunchDestination) -> StartPresentationPolicy {
+        switch destination {
+        case .firstLaunchAssist:
+            return StartPresentationPolicy(hideOrbBeforeShow: false, allowClose: true)
+        case .startOnly:
+            return StartPresentationPolicy(hideOrbBeforeShow: true, allowClose: false)
+        case .startAndShowOrb, .resumeAndShowOrb:
+            return StartPresentationPolicy(hideOrbBeforeShow: false, allowClose: true)
+        }
+    }
+
     func launchApp() {
-        if case .idle = stateMachine.currentState {
-            // 强制首次引导
-            if !AppSettings.shared.hasSeenOnboarding {
-                showStart()
-                return
-            }
-            
-            // 检查 showOrbOnLaunch 设置
-            if AppSettings.shared.showOrbOnLaunch {
-                stateMachine.startSession()
-                showOrb()
-            } else {
-                showStart()
-            }
-        } else {
-            // Session 恢复场景
+        let destination = Self.launchDestination(
+            currentState: stateMachine.currentState,
+            hasSeenOnboarding: AppSettings.shared.hasSeenOnboarding,
+            showOrbOnLaunch: AppSettings.shared.showOrbOnLaunch
+        )
+
+        switch destination {
+        case .firstLaunchAssist:
+            let policy = Self.startPresentationPolicy(for: destination)
+            showOrb()
+            showStart(
+                hideOrbBeforeShow: policy.hideOrbBeforeShow,
+                allowClose: policy.allowClose
+            )
+        case .startAndShowOrb:
+            stateMachine.startSession()
+            showOrb()
+        case .startOnly:
+            let policy = Self.startPresentationPolicy(for: destination)
+            showStart(
+                hideOrbBeforeShow: policy.hideOrbBeforeShow,
+                allowClose: policy.allowClose
+            )
+        case .resumeAndShowOrb:
             showOrb()
             showResumeToast()
         }
     }
     
     private func showResumeToast() {
+        if let existing = resumeToastWindow {
+            existing.orderOut(nil)
+            existing.close()
+            resumeToastWindow = nil
+        }
+
         // Custom in-app toast (no system permissions required)
         let toastWindow = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 300, height: 60),
@@ -429,11 +482,13 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
             backing: .buffered,
             defer: false
         )
-        
+
         toastWindow.backgroundColor = .clear
         toastWindow.isOpaque = false
         toastWindow.level = .statusBar
         toastWindow.ignoresMouseEvents = true
+        toastWindow.isReleasedWhenClosed = false
+        resumeToastWindow = toastWindow
         
         let toastView = NSView(frame: toastWindow.contentRect(forFrameRect: toastWindow.frame))
         toastView.wantsLayer = true
@@ -464,30 +519,46 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
             context.duration = 0.3
             toastWindow.animator().alphaValue = 1.0
         })
-        
+
         // Auto-dismiss after 3 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self, weak toastWindow] in
+            guard let self, let toastWindow else { return }
             NSAnimationContext.runAnimationGroup({ context in
                 context.duration = 0.3
                 toastWindow.animator().alphaValue = 0
             }, completionHandler: {
                 toastWindow.close()
+                if self.resumeToastWindow === toastWindow {
+                    self.resumeToastWindow = nil
+                }
             })
         }
     }
     
-    private func showStart() {
+    private func showStart(
+        hideOrbBeforeShow: Bool = true,
+        allowClose: Bool = false
+    ) {
+        NSApp.activate(ignoringOtherApps: true)
         setOrbInteractionLocked(false)
-        hideOrb()
+        startPanelAllowsClose = allowClose
+        if hideOrbBeforeShow {
+            hideOrb()
+        }
 
         if startPanel == nil {
             let startView = StartView { [weak self] in
                 self?.startFlow()
             }
+
+            var styleMask: NSWindow.StyleMask = [.titled, .fullSizeContentView]
+            if allowClose {
+                styleMask.insert(.closable)
+            }
             
             let window = NSWindow(
                 contentRect: NSRect(x: 0, y: 0, width: 300, height: 250),
-                styleMask: [.titled, .closable, .fullSizeContentView],
+                styleMask: styleMask,
                 backing: .buffered,
                 defer: false
             )
@@ -496,12 +567,27 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
             window.center()
             window.contentView = NSHostingView(rootView: localizedRoot(startView))
             window.isReleasedWhenClosed = false
+            window.delegate = self
             startPanel = window
         }
+
+        configureStartPanelCloseBehavior(allowClose: allowClose)
         
         startPanel?.makeKeyAndOrderFront(nil)
     }
     
+    private func configureStartPanelCloseBehavior(allowClose: Bool) {
+        guard let startPanel else { return }
+        var styleMask = startPanel.styleMask
+        if allowClose {
+            styleMask.insert(.closable)
+        } else {
+            styleMask.remove(.closable)
+        }
+        startPanel.styleMask = styleMask
+        startPanel.standardWindowButton(.closeButton)?.isHidden = !allowClose
+    }
+
     private func startFlow() {
         dismissStartPanelIfVisible()
         AppSettings.shared.hasSeenOnboarding = true
@@ -688,6 +774,14 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     // MARK: - NSWindowDelegate
     
     func windowShouldClose(_ sender: NSWindow) -> Bool {
+        if sender == startPanel {
+            if startPanelAllowsClose {
+                sender.orderOut(nil)
+            } else {
+                sender.makeKeyAndOrderFront(nil)
+            }
+            return false
+        }
         if sender == dashboardWindow {
             // Hide instead of close
             sender.orderOut(nil)
