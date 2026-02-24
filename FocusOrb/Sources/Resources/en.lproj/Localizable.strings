@@ -136,6 +136,7 @@
 "长按结束本次" = "Long-press to end session";
 "绿色→橙色 3秒内可回滚" = "Green → Orange, rollback within 3 seconds";
 "也可直接点击灰色云彩开始" = "You can also tap the gray orb to start";
+"无需点击按钮，可直接点灰色云彩开始" = "No button needed. Tap the gray orb to start directly";
 "导出专注小卡" = "Export Focus Card";
 "Language" = "Language";
 "App Language" = "App Language";

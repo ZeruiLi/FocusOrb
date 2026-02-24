@@ -22,6 +22,10 @@ final class OrbInteractionState: ObservableObject {
 // Custom NSHostingView subclass to intercept right-clicks
 class RightClickHostingView<Content: View>: NSHostingView<Content> {
     var onRightClick: ((NSPoint) -> Void)?
+
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool {
+        true
+    }
     
     override func rightMouseDown(with event: NSEvent) {
         let location = convert(event.locationInWindow, from: nil)
@@ -186,6 +190,15 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
 
         dragPanel.onTap = { [weak self] in
             guard let self = self, !self.isOrbInteractionLocked else { return }
+            // Ensure first-launch/start overlay is dismissed immediately when orb starts a session.
+            if case .idle = self.stateMachine.currentState {
+                if self.startPanel?.isVisible == true {
+                    self.dismissStartPanelIfVisible()
+                }
+                if !AppSettings.shared.hasSeenOnboarding {
+                    AppSettings.shared.hasSeenOnboarding = true
+                }
+            }
             self.stateMachine.handleClick()
         }
         dragPanel.onLongPress = { [weak self] in
@@ -439,6 +452,9 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
     }
 
     func launchApp() {
+        // Defensive reset: avoid stale mouse lock state during startup.
+        setOrbInteractionLocked(false)
+
         let destination = Self.launchDestination(
             currentState: stateMachine.currentState,
             hasSeenOnboarding: AppSettings.shared.hasSeenOnboarding,
@@ -605,6 +621,8 @@ class OrbWindowManager: NSObject, ObservableObject, NSWindowDelegate {
             let y = screenRect.maxY - panel.frame.height - margin
             panel.setFrameOrigin(NSPoint(x: x, y: y))
         }
+        // Defensive reset to guarantee clicks are accepted after launch/flow transitions.
+        panel.ignoresMouseEvents = false
         panel.orderFront(nil)
         isOrbVisible = true
         refreshTaskHUD()

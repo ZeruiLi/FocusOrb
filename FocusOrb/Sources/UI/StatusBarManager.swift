@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 import Combine
 
-class StatusBarManager {
+class StatusBarManager: NSObject {
     private var statusItem: NSStatusItem?
     private weak var windowManager: OrbWindowManager?
     private weak var stateMachine: OrbStateMachine?
